@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Armand Farm</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- =========================
+       NAVBAR
+  ========================== -->
+
+<header class="navbar">
+
+  <div class="logo">
+    🥚 Armand Farm
+  </div>
+
+  <div class="navbar-actions">
+
+    <button
+      class="admin-dashboard-button"
+      onclick="window.location.href='../admin/index.html'"
+    >
+      ⚙️ Admin
+    </button>
+
+    <button
+      class="cart-button"
+      id="cart-button"
+    >
+      🛒 Keranjang
+      (
+      <span id="cart-count">0</span>
+      )
+    </button>
+
+  </div>
+
+</header>
+
+
+  <!-- =========================
+       MAIN
+  ========================== -->
+
+  <main>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+
+      <div class="hero-content">
+
+
+        <p class="subtitle">
+
+          TELUR SEGAR DARI PETERNAKAN
+
+        </p>
+
+
+        <h1>
+
+          Kualitas Segar,
+
+          <br>
+
+          Langsung dari
+
+          <span>
+
+            Armand Farm
+
+          </span>
+
+        </h1>
+
+
+        <p>
+
+          Nikmati telur segar berkualitas
+
+          untuk kebutuhan rumah tangga,
+
+          usaha, dan keluarga Anda.
+
+        </p>
+
+
+        <button
+
+          class="primary-button"
+
+          onclick="
+
+            document
+
+              .getElementById('products')
+
+              .scrollIntoView({
+
+                behavior: 'smooth'
+
+              })
+
+          "
+
+        >
+
+          Belanja Sekarang
+
+        </button>
+
+
+      </div>
+
+
+    </section>
+
+
+    <!-- PRODUK -->
+
+    <section
+
+      class="products-section"
+
+      id="products"
+
+    >
+
+
+      <div class="section-header">
+
+
+        <div>
+
+
+          <p class="subtitle">
+
+            PRODUK KAMI
+
+          </p>
+
+
+          <h2>
+
+            Telur Segar Pilihan
+
+          </h2>
+
+
+        </div>
+
+
+      </div>
+
+
+      <div
+
+        id="product-list"
+
+        class="product-list"
+
+      >
+
+        <p>
+
+          Memuat produk...
+
+        </p>
+
+
+      </div>
+
+
+    </section>
+
+
+  </main>
+
+
+  <!-- =========================
+       MODAL KERANJANG
+  ========================== -->
+
+
+  <div
+
+    id="cart-modal"
+
+    class="cart-modal"
+
+  >
+
+
+    <div class="cart-content">
+
+
+      <div class="cart-header">
+
+
+        <h2>
+
+          Keranjang Belanja
+
+        </h2>
+
+
+        <button
+
+          id="close-cart"
+
+        >
+
+          ✕
+
+        </button>
+
+
+      </div>
+
+
+      <div
+
+        id="cart-items"
+
+      >
+
+        <p>
+
+          Keranjang masih kosong
+
+        </p>
+
+
+      </div>
+
+
+      <div class="cart-footer">
+
+
+        <h3>
+
+
+          Total:
+
+
+          <span
+
+            id="cart-total"
+
+          >
+
+            Rp0
+
+          </span>
+
+
+        </h3>
+
+
+        <button
+
+          class="checkout-button"
+
+          id="checkout-button"
+
+        >
+
+          Checkout
+
+        </button>
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+  <!-- =========================
+       MODAL CHECKOUT
+  ========================== -->
+
+
+  <div
+
+    id="checkout-modal"
+
+    class="checkout-modal"
+
+  >
+
+
+    <div class="checkout-content">
+
+
+      <div class="cart-header">
+
+
+        <h2>
+
+          Checkout
+
+        </h2>
+
+
+        <button
+
+          id="close-checkout"
+
+        >
+
+          ✕
+
+        </button>
+
+
+      </div>
+
+
+      <form
+
+        id="checkout-form"
+
+      >
+
+
+        <label
+
+          for="customer-name"
+
+        >
+
+          Nama Lengkap
+
+        </label>
+
+
+        <input
+
+          type="text"
+
+          id="customer-name"
+
+          placeholder="Masukkan nama lengkap"
+
+          required
+
+        >
+
+
+        <label
+
+          for="customer-phone"
+
+        >
+
+          Nomor WhatsApp
+
+        </label>
+
+
+        <input
+
+          type="tel"
+
+          id="customer-phone"
+
+          placeholder="08xxxxxxxxxx"
+
+          required
+
+        >
+
+
+        <label for="customer-address">
+  Alamat Pengiriman
+</label>
+
+<textarea
+  id="customer-address"
+  placeholder="Masukkan alamat lengkap"
+  required
+></textarea>
+
+
+<label for="customer-note">
+  Catatan Pesanan
+  <span>(Opsional)</span>
+</label>
+
+<textarea
+  id="customer-note"
+  placeholder="Contoh: Kirim sore hari, jangan ditumpuk terlalu berat, dll."
+></textarea>
+
+
+        <div
+
+          class="checkout-summary"
+
+        >
+
+
+          <h3>
+
+            Ringkasan Pesanan
+
+          </h3>
+
+
+          <div
+
+            id="checkout-items"
+
+          ></div>
+
+
+          <h3>
+
+
+            Total:
+
+
+            <span
+
+              id="checkout-total"
+
+            >
+
+              Rp0
+
+            </span>
+
+
+          </h3>
+
+
+        </div>
+
+
+        <button
+
+          type="submit"
+
+          class="checkout-button"
+
+        >
+
+          Buat Pesanan
+
+        </button>
+
+
+      </form>
+
+
+    </div>
+
+
+  </div>
+
+
+  <!-- =========================
+       MODAL PESANAN BERHASIL
+  ========================== -->
+
+
+  <div
+
+    id="success-modal"
+
+    class="success-modal"
+
+  >
+
+
+    <div
+
+      class="success-content"
+
+    >
+
+
+      <div
+
+        class="success-icon"
+
+      >
+
+        🎉
+
+      </div>
+
+
+      <h2>
+
+        Pesanan Berhasil Dibuat!
+
+      </h2>
+
+
+      <p>
+
+        Terima kasih telah berbelanja
+
+        di Armand Farm.
+
+      </p>
+
+
+      <div
+
+        class="success-order-info"
+
+      >
+
+
+        <p>
+
+          Total Pesanan:
+
+        </p>
+
+
+        <strong
+
+          id="success-total"
+
+        >
+
+          Rp0
+
+        </strong>
+
+
+      </div>
+
+
+      <button
+
+        id="whatsapp-button"
+
+        class="whatsapp-button"
+
+      >
+
+        💬 Konfirmasi via WhatsApp
+
+      </button>
+
+
+      <button
+
+        id="close-success"
+
+        class="close-success-button"
+
+      >
+
+        Tutup
+
+      </button>
+
+
+    </div>
+
+
+  </div>
+
+  <!-- MODAL PESANAN BERHASIL -->
+
+<div id="success-modal" class="success-modal">
+
+  <div class="success-content">
+
+    <div class="success-icon">
+      🎉
+    </div>
+
+    <h2>
+      Pesanan Berhasil Dibuat!
+    </h2>
+
+    <p>
+      Terima kasih telah berbelanja di Armand Farm.
+    </p>
+
+    <div class="success-order-info">
+
+      <p>
+        Total Pesanan:
+      </p>
+
+      <strong id="success-total">
+        Rp0
+      </strong>
+
+    </div>
+
+    <button
+      id="whatsapp-button"
+      class="whatsapp-button"
+    >
+      💬 Konfirmasi via WhatsApp
+    </button>
+
+    <button
+      id="close-success"
+      class="close-success-button"
+    >
+      Tutup
+    </button>
+
+  </div>
+
+</div>
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+
+  <footer
+
+    id="about"
+
+  >
+
+    <p>
+
+      © 2026 Armand Farm.
+
+      Semua hak dilindungi.
+
+    </p>
+
+
+  </footer>
+
+
+  <script
+
+    src="script.js"
+
+  ></script>
+
+</body>
+
+</html>

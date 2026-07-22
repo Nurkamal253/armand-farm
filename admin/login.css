@@ -1,0 +1,248 @@
+* {
+
+  margin: 0;
+
+  padding: 0;
+
+  box-sizing: border-box;
+
+}
+
+
+body {
+
+  font-family: Arial, sans-serif;
+
+  min-height: 100vh;
+
+  background: #eaf1e3;
+
+  color: #263322;
+
+}
+
+
+.login-container {
+
+  min-height: 100vh;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 20px;
+
+}
+
+
+.login-card {
+
+  width: 100%;
+
+  max-width: 420px;
+
+  padding: 40px;
+
+  background: white;
+
+  border-radius: 18px;
+
+  box-shadow:
+
+    0 10px 35px
+
+    rgba(0, 0, 0, 0.1);
+
+  text-align: center;
+
+}
+
+
+.login-logo {
+
+  width: 70px;
+
+  height: 70px;
+
+  margin: 0 auto 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #edf4e9;
+
+  border-radius: 18px;
+
+  font-size: 38px;
+
+}
+
+
+.login-card h1 {
+
+  font-size: 28px;
+
+  margin-bottom: 5px;
+
+}
+
+
+.login-subtitle {
+
+  color: #687267;
+
+  margin-bottom: 30px;
+
+}
+
+
+#login-form {
+
+  display: flex;
+
+  flex-direction: column;
+
+  text-align: left;
+
+}
+
+
+#login-form label {
+
+  margin-bottom: 7px;
+
+  margin-top: 15px;
+
+  font-weight: bold;
+
+  font-size: 14px;
+
+}
+
+
+#login-form input {
+
+  padding: 13px;
+
+  border: 1px solid #dce4d8;
+
+  border-radius: 8px;
+
+  font-size: 15px;
+
+  outline: none;
+
+}
+
+
+#login-form input:focus {
+
+  border-color: #527a42;
+
+  box-shadow:
+
+    0 0 0 3px
+
+    rgba(82, 122, 66, 0.12);
+
+}
+
+
+#login-button {
+
+  margin-top: 25px;
+
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #527a42;
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+}
+
+
+#login-button:hover {
+
+  background: #3f6332;
+
+}
+
+
+#login-button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}
+
+
+.error-message {
+
+  display: none;
+
+  margin-top: 15px;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  background: #ffe1e1;
+
+  color: #a62e2e;
+
+  font-size: 14px;
+
+  text-align: center;
+
+}
+
+
+.back-button {
+
+  display: block;
+
+  margin-top: 25px;
+
+  color: #527a42;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+}
+
+
+.back-button:hover {
+
+  text-decoration: underline;
+
+}
+
+
+@media (max-width: 500px) {
+
+
+  .login-card {
+
+    padding: 30px 20px;
+
+  }
+
+
+}
