@@ -1780,6 +1780,98 @@ app.get(
 
 );
 
+// ==================================================
+// ADMIN WHATSAPP AKTIF
+// ==================================================
+
+
+// ======================================
+// GET ADMIN WHATSAPP AKTIF
+// ======================================
+//
+// PUBLIC
+// Dipakai halaman customer untuk tombol WhatsApp
+//
+
+app.get(
+
+  "/api/admin/active",
+
+  async (req, res) => {
+
+    try {
+
+
+      const admin =
+        await prisma.admin.findFirst({
+
+          where: {
+
+            is_active:
+              true
+
+          },
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            whatsapp:
+              true
+
+          }
+
+        });
+
+
+      if (!admin) {
+
+        return res.status(404).json({
+
+          error:
+            "Belum ada admin WhatsApp aktif."
+
+        });
+
+      }
+
+
+      res.json(
+
+        admin
+
+      );
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR GET ACTIVE ADMIN:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal mengambil admin aktif."
+
+      });
+
+    }
+
+  }
+
+);
+
 
 // ======================================
 // GET ADMIN BERDASARKAN ID
@@ -2521,99 +2613,6 @@ app.delete(
 
         error:
           "Gagal menghapus admin."
-
-      });
-
-    }
-
-  }
-
-);
-
-
-// ==================================================
-// ADMIN WHATSAPP AKTIF
-// ==================================================
-
-
-// ======================================
-// GET ADMIN WHATSAPP AKTIF
-// ======================================
-//
-// PUBLIC
-// Dipakai halaman customer untuk tombol WhatsApp
-//
-
-app.get(
-
-  "/api/admin/active",
-
-  async (req, res) => {
-
-    try {
-
-
-      const admin =
-        await prisma.admin.findFirst({
-
-          where: {
-
-            is_active:
-              true
-
-          },
-
-          select: {
-
-            id:
-              true,
-
-            name:
-              true,
-
-            whatsapp:
-              true
-
-          }
-
-        });
-
-
-      if (!admin) {
-
-        return res.status(404).json({
-
-          error:
-            "Belum ada admin WhatsApp aktif."
-
-        });
-
-      }
-
-
-      res.json(
-
-        admin
-
-      );
-
-
-    } catch (error) {
-
-
-      console.error(
-
-        "ERROR GET ACTIVE ADMIN:",
-
-        error
-
-      );
-
-
-      res.status(500).json({
-
-        error:
-          "Gagal mengambil admin aktif."
 
       });
 
