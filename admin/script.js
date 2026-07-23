@@ -2,7 +2,7 @@
 // CEK LOGIN ADMIN
 // ======================================
 
-const adminToken =
+let adminToken =
   localStorage.getItem("adminToken");
 
 
@@ -13,6 +13,114 @@ if (!adminToken) {
 
 }
 
+
+// ======================================
+// FETCH API DENGAN TOKEN ADMIN
+// ======================================
+
+async function adminFetch(
+
+  url,
+
+  options = {}
+
+) {
+
+  const token =
+    localStorage.getItem(
+      "adminToken"
+    );
+
+
+  // ======================================
+  // TOKEN TIDAK ADA
+  // ======================================
+
+  if (!token) {
+
+    localStorage.removeItem(
+      "adminData"
+    );
+
+
+    window.location.href =
+      "login.html";
+
+
+    throw new Error(
+      "Token admin tidak ditemukan"
+    );
+
+  }
+
+
+  const headers = {
+
+    ...(options.headers || {}),
+
+    Authorization:
+      `Bearer ${token}`
+
+  };
+
+
+  const response =
+    await fetch(
+
+      url,
+
+      {
+
+        ...options,
+
+        headers
+
+      }
+
+    );
+
+
+  // ======================================
+  // TOKEN TIDAK VALID / EXPIRED
+  // ======================================
+
+  if (
+
+    response.status === 401
+
+  ) {
+
+    localStorage.removeItem(
+      "adminToken"
+    );
+
+
+    localStorage.removeItem(
+      "adminData"
+    );
+
+
+    alert(
+
+      "Sesi login sudah berakhir. Silakan login kembali."
+
+    );
+
+
+    window.location.href =
+      "login.html";
+
+
+    throw new Error(
+      "Token tidak valid"
+    );
+
+  }
+
+
+  return response;
+
+}
 
 // ======================================
 // API
@@ -120,18 +228,26 @@ function goToStore() {
 // ======================================
 
 const logoutButton =
-  document.getElementById("logout-button");
+  document.getElementById(
+    "logout-button"
+  );
 
 
 if (logoutButton) {
 
   logoutButton.addEventListener(
+
     "click",
+
     function () {
 
-      const confirmation = confirm(
-        "Apakah kamu yakin ingin keluar dari dashboard admin?"
-      );
+
+      const confirmation =
+        confirm(
+
+          "Apakah kamu yakin ingin keluar dari dashboard admin?"
+
+        );
 
 
       if (!confirmation) {
@@ -141,20 +257,31 @@ if (logoutButton) {
       }
 
 
+      // HAPUS TOKEN
+
       localStorage.removeItem(
+
         "adminToken"
+
       );
 
+
+      // HAPUS DATA ADMIN
 
       localStorage.removeItem(
+
         "adminData"
+
       );
 
+
+      // KEMBALI KE LOGIN
 
       window.location.href =
         "login.html";
 
     }
+
   );
 
 }
@@ -168,15 +295,19 @@ async function loadProducts() {
   try {
 
     const response =
-      await fetch(
+      await adminFetch(
+
         API_URL
+
       );
 
 
     if (!response.ok) {
 
       throw new Error(
+
         "Gagal mengambil produk"
+
       );
 
     }
@@ -192,8 +323,11 @@ async function loadProducts() {
   } catch (error) {
 
     console.error(
+
       "ERROR LOAD PRODUCTS:",
+
       error
+
     );
 
 
@@ -551,7 +685,7 @@ productForm.addEventListener(
 
 
       const response =
-        await fetch(
+        await adminFetch(
 
           id
 
@@ -676,7 +810,7 @@ async function deleteProduct(
 
 
     const response =
-      await fetch(
+      await adminFetch(
 
         `${API_URL}/${id}`,
 
@@ -744,14 +878,12 @@ async function loadOrders() {
 
   try {
 
-
     const response =
-      await fetch(
+  await adminFetch(
 
-        ORDER_API_URL
+    ORDER_API_URL
 
-      );
-
+  );
 
     if (!response.ok) {
 
@@ -1012,7 +1144,6 @@ function renderOrders() {
 
 </div>
 
-          </span>
 
         </div>
 
@@ -1120,7 +1251,6 @@ function renderOrders() {
 
           <button
 
-           <button
 
   class="payment-button ${isPaid ? "paid-action" : "unpaid-action"}"
 
@@ -1237,7 +1367,7 @@ async function togglePaymentStatus(
 
 
     const response =
-      await fetch(
+      await adminFetch(
 
         `${ORDER_API_URL}/${orderId}/payment`,
 
@@ -1507,9 +1637,7 @@ setInterval(
     }
 
 
-    loadProducts();
-
-    loadOrders();
+   adminFetch()
 
 
   },

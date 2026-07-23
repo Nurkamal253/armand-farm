@@ -51,13 +51,13 @@ model OrderItem {
 }
 
 model Admin {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  whatsapp  String
-  role      String   @default("staff")
-  is_active Boolean  @default(true)
-
-  created_at DateTime @default(now())
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String
+  whatsapp      String
+  role          String   @default("admin")
+  is_active     Boolean  @default(false)
+  token_version Int      @default(0)
+  created_at    DateTime @default(now())
 }

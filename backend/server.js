@@ -5,218 +5,421 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { PrismaClient } = require("./generated/prisma");
-const { PrismaPg } = require("@prisma/adapter-pg");
+const {
+  PrismaClient
+} = require("./generated/prisma");
 
-const app = express();
+const {
+  PrismaPg
+} = require("@prisma/adapter-pg");
 
-app.use(cors());
-app.use(express.json());
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL
-});
+const app =
+  express();
 
-const prisma = new PrismaClient({
-  adapter
-});
 
-const PORT = 5000;
+const PORT =
+  process.env.PORT || 5000;
+
+
+const JWT_SECRET =
+  process.env.JWT_SECRET;
+
+
+if (!JWT_SECRET) {
+
+  console.error(
+    "ERROR: JWT_SECRET belum diatur di file .env"
+  );
+
+  process.exit(1);
+
+}
 
 
 // ======================================
-// HOME
+// MIDDLEWARE GLOBAL
 // ======================================
 
-app.get("/", (req, res) => {
-  res.send("Armand Farm Backend berjalan!");
-});
+app.use(
+
+  cors()
+
+);
+
+
+app.use(
+
+  express.json()
+
+);
+
 
 // ======================================
-// GET SEMUA ADMIN
+// DATABASE
 // ======================================
 
-app.get("/api/admins", async (req, res) => {
+const adapter =
+  new PrismaPg({
 
-  try {
+    connectionString:
+      process.env.DATABASE_URL
 
-    const admins =
-      await prisma.admin.findMany({
-
-        orderBy: {
-
-          created_at: "desc"
-
-        }
-
-      });
+  });
 
 
-    res.json(admins);
+const prisma =
+  new PrismaClient({
+
+    adapter
+
+  });
 
 
-  } catch (error) {
+// ======================================
+// HELPER
+// ======================================
 
-    console.error(error);
+
+// ======================================
+// AMBIL TOKEN DARI HEADER
+// ======================================
+
+function getTokenFromRequest(
+
+  req
+
+) {
+
+  const authHeader =
+    req.headers.authorization;
 
 
-    res.status(500).json({
+  if (
 
-      error:
-        "Gagal mengambil data admin"
+    !authHeader ||
 
-    });
+    !authHeader.startsWith(
+      "Bearer "
+    )
+
+  ) {
+
+    return null;
 
   }
 
-});
 
-app.get("/api/admin/active", async (req, res) => {
+  return authHeader.split(
+    " "
+  )[1];
+
+}
+
+
+// ======================================
+// AUTHENTICATE ADMIN
+// ======================================
+
+async function authenticateAdmin(
+
+  req,
+
+  res,
+
+  next
+
+) {
 
   try {
 
-    const activeAdmin =
-      await prisma.admin.findFirst({
 
-        where: {
+    const token =
+      getTokenFromRequest(
 
-          is_active: true
+        req
 
-        }
-
-      });
+      );
 
 
-    if (!activeAdmin) {
+    if (!token) {
 
-      return res.status(404).json({
+      return res.status(401).json({
 
         error:
-          "Belum ada admin aktif"
+          "Akses ditolak. Token admin tidak ditemukan."
 
       });
 
     }
 
 
-    res.json({
+    // ======================================
+    // VERIFIKASI JWT
+    // ======================================
 
-      id:
-        activeAdmin.id,
+    const decoded =
+      jwt.verify(
 
-      name:
-        activeAdmin.name,
+        token,
 
-      whatsapp:
-        activeAdmin.whatsapp
+        JWT_SECRET
 
-    });
+      );
+
+
+    if (
+
+      !decoded.id ||
+
+      decoded.tokenVersion === undefined
+
+    ) {
+
+      return res.status(401).json({
+
+        error:
+          "Token tidak valid."
+
+      });
+
+    }
+
+
+    // ======================================
+    // CARI ADMIN DI DATABASE
+    // ======================================
+
+    const admin =
+      await prisma.admin.findUnique({
+
+        where: {
+
+          id:
+            decoded.id
+
+        }
+
+      });
+
+
+    if (!admin) {
+
+      return res.status(401).json({
+
+        error:
+          "Admin tidak ditemukan."
+
+      });
+
+    }
+
+
+    // ======================================
+    // CEK TOKEN VERSION
+    // ======================================
+
+    if (
+
+      admin.token_version !==
+      decoded.tokenVersion
+
+    ) {
+
+      return res.status(401).json({
+
+        error:
+          "Sesi login sudah tidak berlaku. Silakan login kembali."
+
+      });
+
+    }
+
+
+    // ======================================
+    // SIMPAN DATA ADMIN KE REQUEST
+    // ======================================
+
+    req.admin =
+      admin;
+
+
+    next();
 
 
   } catch (error) {
 
+
+    if (
+
+      error.name ===
+      "TokenExpiredError"
+
+    ) {
+
+      return res.status(401).json({
+
+        error:
+          "Token sudah kedaluwarsa. Silakan login kembali."
+
+      });
+
+    }
+
+
+    if (
+
+      error.name ===
+      "JsonWebTokenError"
+
+    ) {
+
+      return res.status(401).json({
+
+        error:
+          "Token tidak valid."
+
+      });
+
+    }
+
+
     console.error(
 
-      "GAGAL MENGAMBIL ADMIN AKTIF:",
+      "ERROR AUTHENTICATE ADMIN:",
 
       error
 
     );
 
 
-    res.status(500).json({
+    return res.status(500).json({
 
       error:
-        "Gagal mengambil admin aktif"
+        "Gagal memverifikasi token admin."
 
     });
 
   }
 
-});
+}
+
 
 // ======================================
-// AKTIFKAN ADMIN SEBAGAI ADMIN WHATSAPP
+// CEK SUPERADMIN
 // ======================================
 
-app.patch(
+function requireSuperAdmin(
 
-  "/api/admins/:id/activate",
+  req,
+
+  res,
+
+  next
+
+) {
+
+  if (
+
+    req.admin.role !==
+    "superadmin"
+
+  ) {
+
+    return res.status(403).json({
+
+      error:
+        "Akses hanya untuk Superadmin."
+
+    });
+
+  }
+
+
+  next();
+
+}
+
+
+// ======================================
+// HOME
+// ======================================
+
+app.get(
+
+  "/",
+
+  (req, res) => {
+
+    res.send(
+
+      "Armand Farm Backend berjalan!"
+
+    );
+
+  }
+
+);
+
+
+// ==================================================
+// PRODUK
+// ==================================================
+
+
+// ======================================
+// GET SEMUA PRODUK
+// ======================================
+//
+// PUBLIC
+// Dibutuhkan oleh halaman toko/customer
+//
+
+app.get(
+
+  "/api/products",
 
   async (req, res) => {
 
     try {
 
-      const { id } =
-        req.params;
 
+      const products =
+        await prisma.product.findMany({
 
-      const activeAdmin =
-        await prisma.$transaction(
+          orderBy: {
 
-          async tx => {
-
-
-            // NONAKTIFKAN SEMUA ADMIN
-
-            await tx.admin.updateMany({
-
-              data: {
-
-                is_active: false
-
-              }
-
-            });
-
-
-            // AKTIFKAN ADMIN TERPILIH
-
-            const selectedAdmin =
-              await tx.admin.update({
-
-                where: {
-
-                  id: id
-
-                },
-
-                data: {
-
-                  is_active: true
-
-                }
-
-              });
-
-
-            return selectedAdmin;
+            createdAt:
+              "desc"
 
           }
 
-        );
+        });
 
 
-      res.json({
+      res.json(
 
-        message:
-          "Admin WhatsApp berhasil diubah",
+        products
 
-        admin:
-          activeAdmin
-
-      });
+      );
 
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR GET PRODUCTS:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal mengaktifkan admin"
+          "Gagal mengambil data produk."
 
       });
 
@@ -226,592 +429,868 @@ app.patch(
 
 );
 
-// ======================================
-// GET SEMUA PRODUK
-// ======================================
-
-app.get("/api/products", async (req, res) => {
-
-  try {
-
-    const products =
-      await prisma.product.findMany({
-
-        orderBy: {
-          createdAt: "desc"
-        }
-
-      });
-
-    res.json(products);
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-
-      error:
-        "Gagal mengambil data produk"
-
-    });
-
-  }
-
-});
-
 
 // ======================================
 // TAMBAH PRODUK
 // ======================================
+//
+// ADMIN WAJIB LOGIN
+//
 
-app.post("/api/products", async (req, res) => {
+app.post(
 
-  try {
+  "/api/products",
 
-    const {
-      name,
-      desc,
-      price,
-      stock,
-      unit
-    } = req.body;
+  authenticateAdmin,
+
+  async (req, res) => {
+
+    try {
 
 
-    const product =
-      await prisma.product.create({
+      const {
 
-        data: {
+        name,
 
-          name,
+        desc,
 
-          desc,
+        price,
 
-          price:
-            Number(price),
+        stock,
 
-          stock:
-            Number(stock),
+        unit
 
-          unit
+      } = req.body;
 
-        }
+
+      if (
+
+        !name ||
+
+        price === undefined ||
+
+        stock === undefined ||
+
+        !unit
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Nama, harga, stok, dan unit wajib diisi."
+
+        });
+
+      }
+
+
+      const numericPrice =
+        Number(price);
+
+
+      const numericStock =
+        Number(stock);
+
+
+      if (
+
+        isNaN(numericPrice) ||
+
+        numericPrice < 0
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Harga tidak valid."
+
+        });
+
+      }
+
+
+      if (
+
+        isNaN(numericStock) ||
+
+        numericStock < 0
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Stok tidak valid."
+
+        });
+
+      }
+
+
+      const product =
+        await prisma.product.create({
+
+          data: {
+
+            name:
+              name.trim(),
+
+            desc:
+              desc
+                ? desc.trim()
+                : "",
+
+            price:
+              numericPrice,
+
+            stock:
+              numericStock,
+
+            unit:
+              unit.trim()
+
+          }
+
+        });
+
+
+      res.status(201).json(
+
+        product
+
+      );
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR CREATE PRODUCT:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal menambahkan produk."
 
       });
 
-
-    res.status(201).json(product);
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-
-      error:
-        "Gagal menambahkan produk"
-
-    });
+    }
 
   }
 
-});
+);
 
 
 // ======================================
 // EDIT PRODUK
 // ======================================
 
-app.put("/api/products/:id", async (req, res) => {
+app.put(
 
-  try {
+  "/api/products/:id",
 
-    const {
-      id
-    } = req.params;
+  authenticateAdmin,
 
+  async (req, res) => {
 
-    const {
-      name,
-      desc,
-      price,
-      stock,
-      unit
-    } = req.body;
+    try {
 
 
-    const product =
-      await prisma.product.update({
+      const {
 
-        where: {
+        id
 
-          id
+      } = req.params;
 
-        },
 
-        data: {
+      const {
 
-          name,
+        name,
 
-          desc,
+        desc,
 
-          price:
-            Number(price),
+        price,
 
-          stock:
-            Number(stock),
+        stock,
 
-          unit
+        unit
 
-        }
+      } = req.body;
+
+
+      if (
+
+        !name ||
+
+        price === undefined ||
+
+        stock === undefined ||
+
+        !unit
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Nama, harga, stok, dan unit wajib diisi."
+
+        });
+
+      }
+
+
+      const numericPrice =
+        Number(price);
+
+
+      const numericStock =
+        Number(stock);
+
+
+      if (
+
+        isNaN(numericPrice) ||
+
+        numericPrice < 0
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Harga tidak valid."
+
+        });
+
+      }
+
+
+      if (
+
+        isNaN(numericStock) ||
+
+        numericStock < 0
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Stok tidak valid."
+
+        });
+
+      }
+
+
+      const product =
+        await prisma.product.update({
+
+          where: {
+
+            id
+
+          },
+
+          data: {
+
+            name:
+              name.trim(),
+
+            desc:
+              desc
+                ? desc.trim()
+                : "",
+
+            price:
+              numericPrice,
+
+            stock:
+              numericStock,
+
+            unit:
+              unit.trim()
+
+          }
+
+        });
+
+
+      res.json(
+
+        product
+
+      );
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR UPDATE PRODUCT:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal mengubah produk."
 
       });
 
-
-    res.json(product);
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-
-      error:
-        "Gagal mengubah produk"
-
-    });
+    }
 
   }
 
-});
+);
 
 
 // ======================================
 // HAPUS PRODUK
 // ======================================
 
-app.delete("/api/products/:id", async (req, res) => {
+app.delete(
 
-  try {
+  "/api/products/:id",
 
-    const {
-      id
-    } = req.params;
+  authenticateAdmin,
+
+  async (req, res) => {
+
+    try {
 
 
-    await prisma.product.delete({
-
-      where: {
+      const {
 
         id
 
-      }
-
-    });
+      } = req.params;
 
 
-    res.json({
+      await prisma.product.delete({
 
-      message:
-        "Produk berhasil dihapus"
+        where: {
 
-    });
+          id
 
-  } catch (error) {
+        }
 
-    console.error(error);
-
-    res.status(500).json({
-
-      error:
-        "Gagal menghapus produk"
-
-    });
-
-  }
-
-});
+      });
 
 
-// ======================================
-// BUAT PESANAN
-// ======================================
+      res.json({
 
-app.post("/api/orders", async (req, res) => {
+        message:
+          "Produk berhasil dihapus."
 
-  try {
-
-    const {
-
-      customer_name,
-      customer_phone,
-      customer_address,
-      note,
-      items
-
-    } = req.body;
+      });
 
 
-    // ======================================
-    // VALIDASI KERANJANG
-    // ======================================
+    } catch (error) {
 
-    if (
 
-      !items ||
+      console.error(
 
-      !Array.isArray(items) ||
+        "ERROR DELETE PRODUCT:",
 
-      items.length === 0
+        error
 
-    ) {
+      );
 
-      return res.status(400).json({
+
+      res.status(500).json({
 
         error:
-          "Keranjang kosong"
+          "Gagal menghapus produk."
 
       });
 
     }
 
+  }
 
-    const order =
-      await prisma.$transaction(
-
-        async (tx) => {
+);
 
 
-          // ======================================
-          // 1. AMBIL PRODUK DARI DATABASE
-          // ======================================
-
-          const products = [];
+// ==================================================
+// PESANAN
+// ==================================================
 
 
-          for (
+// ======================================
+// BUAT PESANAN
+// ======================================
+//
+// PUBLIC
+// Customer dapat membuat pesanan
+//
 
-            const item of items
+app.post(
 
-          ) {
+  "/api/orders",
+
+  async (req, res) => {
+
+    try {
 
 
-            const product =
-              await tx.product.findUnique({
+      const {
 
-                where: {
+        customer_name,
 
-                  id:
-                    item.id
+        customer_phone,
+
+        customer_address,
+
+        note,
+
+        items
+
+      } = req.body;
+
+
+      if (
+
+        !customer_name ||
+
+        !customer_phone ||
+
+        !customer_address
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Data customer wajib diisi."
+
+        });
+
+      }
+
+
+      if (
+
+        !Array.isArray(items) ||
+
+        items.length === 0
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Keranjang kosong."
+
+        });
+
+      }
+
+
+      const order =
+
+        await prisma.$transaction(
+
+          async (tx) => {
+
+
+            const products = [];
+
+
+            // ======================================
+            // VALIDASI SEMUA PRODUK
+            // ======================================
+
+            for (
+
+              const item of items
+
+            ) {
+
+
+              const product =
+                await tx.product.findUnique({
+
+                  where: {
+
+                    id:
+                      item.id
+
+                  }
+
+                });
+
+
+              if (!product) {
+
+                throw new Error(
+
+                  `Produk ${item.name || ""} tidak ditemukan.`
+
+                );
+
+              }
+
+
+              const quantity =
+                Number(
+
+                  item.quantity
+
+                );
+
+
+              if (
+
+                !Number.isInteger(
+
+                  quantity
+
+                ) ||
+
+                quantity <= 0
+
+              ) {
+
+                throw new Error(
+
+                  `Jumlah produk ${product.name} tidak valid.`
+
+                );
+
+              }
+
+
+              const currentStock =
+                Number(
+
+                  product.stock || 0
+
+                );
+
+
+              if (
+
+                currentStock < quantity
+
+              ) {
+
+                throw new Error(
+
+                  `Stok ${product.name} tidak mencukupi. ` +
+
+                  `Stok tersedia: ` +
+
+                  `${currentStock} ${product.unit || ""}.`
+
+                );
+
+              }
+
+
+              products.push({
+
+                product,
+
+                quantity
+
+              });
+
+            }
+
+
+            // ======================================
+            // HITUNG TOTAL
+            // ======================================
+
+            let total_amount =
+              0;
+
+
+            products.forEach(
+
+              ({
+
+                product,
+
+                quantity
+
+              }) => {
+
+
+                total_amount +=
+
+                  Number(
+
+                    product.price
+
+                  ) *
+
+                  quantity;
+
+              }
+
+            );
+
+
+            // ======================================
+            // BUAT PESANAN
+            // ======================================
+
+            const newOrder =
+              await tx.order.create({
+
+                data: {
+
+                  customer_name:
+                    customer_name.trim(),
+
+                  customer_phone:
+                    customer_phone.trim(),
+
+                  customer_address:
+                    customer_address.trim(),
+
+                  note:
+                    note
+                      ? note.trim()
+                      : null,
+
+                  total_amount,
+
+                  created_at:
+                    new Date()
 
                 }
 
               });
 
 
-            if (!product) {
-
-              throw new Error(
-
-                `Produk ${item.name} tidak ditemukan`
-
-              );
-
-            }
-
-
-            const quantity =
-              Number(item.quantity);
-
-
             // ======================================
-            // VALIDASI JUMLAH
+            // SIMPAN DETAIL PESANAN
             // ======================================
 
-            if (
+            await tx.orderItem.createMany({
 
-              !Number.isInteger(quantity) ||
+              data:
 
-              quantity <= 0
+                products.map(
 
-            ) {
+                  ({
 
-              throw new Error(
+                    product,
 
-                `Jumlah ${product.name} tidak valid`
+                    quantity
 
-              );
-
-            }
+                  }) => ({
 
 
-            // ======================================
-            // VALIDASI STOK
-            // ======================================
-
-            const currentStock =
-              Number(product.stock || 0);
+                    order_id:
+                      newOrder.id,
 
 
-            if (
-
-              currentStock < quantity
-
-            ) {
-
-              throw new Error(
-
-                `Stok ${product.name} tidak mencukupi. ` +
-
-                `Stok tersedia: ` +
-
-                `${currentStock} ${product.unit || ""}.`
-
-              );
-
-            }
+                    product_id:
+                      product.id,
 
 
-            products.push({
-
-              product,
-
-              quantity
-
-            });
-
-          }
+                    product_name:
+                      product.name,
 
 
-          // ======================================
-          // 2. HITUNG TOTAL DARI DATABASE
-          // ======================================
-
-          let total_amount = 0;
+                    price:
+                      product.price,
 
 
-          products.forEach(
-
-            ({
-
-              product,
-
-              quantity
-
-            }) => {
+                    quantity,
 
 
-              total_amount +=
+                    subtotal:
 
-                Number(product.price) *
+                      Number(
 
-                quantity;
+                        product.price
 
-            }
+                      ) *
 
-          );
+                      quantity
 
+                  })
 
-          // ======================================
-          // 3. BUAT PESANAN
-          // ======================================
-
-          const newOrder =
-            await tx.order.create({
-
-              data: {
-
-                customer_name,
-
-                customer_phone,
-
-                customer_address,
-
-                note,
-
-                total_amount,
-
-                created_at:
-                  new Date()
-
-              }
+                )
 
             });
 
 
-          // ======================================
-          // 4. SIMPAN DETAIL PESANAN
-          // ======================================
+            // ======================================
+            // KURANGI STOK
+            // ======================================
 
-          await tx.orderItem.createMany({
+            for (
 
-            data:
+              const {
 
-              products.map(
+                product,
 
-                ({
+                quantity
 
-                  product,
+              } of products
 
-                  quantity
-
-                }) => ({
+            ) {
 
 
-                  order_id:
-                    newOrder.id,
+              await tx.product.update({
 
+                where: {
 
-                  product_id:
-                    product.id,
+                  id:
+                    product.id
 
+                },
 
-                  product_name:
-                    product.name,
+                data: {
 
+                  stock: {
 
-                  price:
-                    product.price,
+                    decrement:
+                      quantity
 
-
-                  quantity,
-
-
-                  subtotal:
-
-                    Number(product.price) *
-
-                    quantity
-
-                })
-
-              )
-
-          });
-
-
-          // ======================================
-          // 5. KURANGI STOK
-          // ======================================
-
-          for (
-
-            const {
-
-              product,
-
-              quantity
-
-            } of products
-
-          ) {
-
-
-            await tx.product.update({
-
-              where: {
-
-                id:
-                  product.id
-
-              },
-
-              data: {
-
-                stock: {
-
-                  decrement:
-                    quantity
+                  }
 
                 }
 
-              }
+              });
 
-            });
+            }
+
+
+            return newOrder;
 
           }
 
+        );
 
-          return newOrder;
 
-        }
+      res.status(201).json({
+
+        message:
+          "Pesanan berhasil dibuat.",
+
+        order
+
+      });
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR CREATE ORDER:",
+
+        error
 
       );
 
 
-    res.status(201).json({
+      res.status(400).json({
 
-      message:
-        "Pesanan berhasil dibuat",
+        error:
 
-      order
+          error.message ||
 
-    });
+          "Gagal membuat pesanan."
 
+      });
 
-  } catch (error) {
-
-    console.error(error);
-
-
-    res.status(400).json({
-
-      error:
-
-        error.message ||
-
-        "Gagal membuat pesanan"
-
-    });
+    }
 
   }
 
-});
+);
 
 
 // ======================================
 // GET SEMUA PESANAN
 // ======================================
+//
+// ADMIN WAJIB LOGIN
+//
 
-app.get("/api/orders", async (req, res) => {
+app.get(
 
-  try {
+  "/api/orders",
 
-    const orders =
-      await prisma.order.findMany({
+  authenticateAdmin,
 
-        include: {
+  async (req, res) => {
 
-          items: true
+    try {
 
-        },
 
-        orderBy: {
+      const orders =
+        await prisma.order.findMany({
 
-          created_at:
-            "desc"
+          include: {
 
-        }
+            items:
+              true
+
+          },
+
+          orderBy: {
+
+            created_at:
+              "desc"
+
+          }
+
+        });
+
+
+      res.json(
+
+        orders
+
+      );
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR GET ORDERS:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal mengambil data pesanan."
 
       });
 
-
-    res.json(orders);
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-
-      error:
-        "Gagal mengambil data pesanan"
-
-    });
+    }
 
   }
 
-});
+);
 
 
 // ======================================
@@ -822,37 +1301,41 @@ app.patch(
 
   "/api/orders/:id/payment",
 
-  async (req, res) => {
+  authenticateAdmin,
 
+  async (req, res) => {
 
     try {
 
 
       const {
+
         id
+
       } = req.params;
 
 
       const {
 
-        payment_status:
-          paymentStatus
+        payment_status
 
       } = req.body;
 
 
       if (
 
-        paymentStatus !== "paid" &&
+        payment_status !==
+          "paid" &&
 
-        paymentStatus !== "unpaid"
+        payment_status !==
+          "unpaid"
 
       ) {
 
         return res.status(400).json({
 
           error:
-            "Status pembayaran tidak valid"
+            "Status pembayaran tidak valid."
 
         });
 
@@ -860,7 +1343,6 @@ app.patch(
 
 
       const updatedOrder =
-
         await prisma.order.update({
 
           where: {
@@ -871,14 +1353,12 @@ app.patch(
 
           data: {
 
-            payment_status:
-
-              paymentStatus,
-
+            payment_status,
 
             paid_at:
 
-              paymentStatus === "paid"
+              payment_status ===
+              "paid"
 
                 ? new Date()
 
@@ -892,11 +1372,9 @@ app.patch(
       res.json({
 
         message:
-
-          "Status pembayaran berhasil diubah",
+          "Status pembayaran berhasil diubah.",
 
         order:
-
           updatedOrder
 
       });
@@ -905,14 +1383,19 @@ app.patch(
     } catch (error) {
 
 
-      console.error(error);
+      console.error(
+
+        "ERROR UPDATE PAYMENT:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-
-          "Gagal mengubah status pembayaran"
+          "Gagal mengubah status pembayaran."
 
       });
 
@@ -922,173 +1405,312 @@ app.patch(
 
 );
 
+
+// ==================================================
+// ADMIN AUTHENTICATION
+// ==================================================
+
+
 // ======================================
 // LOGIN ADMIN
 // ======================================
 
-app.post("/api/admin/login", async (req, res) => {
+app.post(
 
-  try {
+  "/api/admin/login",
 
-    const {
-      email,
-      password
-    } = req.body;
+  async (req, res) => {
 
-
-    if (!email || !password) {
-
-      return res.status(400).json({
-
-        error:
-          "Email dan password wajib diisi"
-
-      });
-
-    }
+    try {
 
 
-    const admin =
-      await prisma.admin.findUnique({
+      const {
 
-        where: {
-          email: email
-        }
+        email,
 
-      });
+        password
 
-
-    if (!admin) {
-
-      return res.status(401).json({
-
-        error:
-          "Email atau password salah"
-
-      });
-
-    }
+      } = req.body;
 
 
-    if (!admin.is_active) {
+      if (
 
-      return res.status(403).json({
+        !email ||
 
-        error:
-          "Akun admin tidak aktif"
+        !password
 
-      });
+      ) {
 
-    }
+        return res.status(400).json({
 
+          error:
+            "Email dan password wajib diisi."
 
-    const passwordMatch =
-      await bcrypt.compare(
-
-        password,
-
-        admin.password
-
-      );
-
-
-    if (!passwordMatch) {
-
-      return res.status(401).json({
-
-        error:
-          "Email atau password salah"
-
-      });
-
-    }
-
-
-    const token =
-      jwt.sign(
-
-        {
-
-          id:
-            admin.id,
-
-          email:
-            admin.email,
-
-          role:
-            admin.role
-
-        },
-
-        process.env.JWT_SECRET,
-
-        {
-
-          expiresIn:
-            "1d"
-
-        }
-
-      );
-
-
-    res.json({
-
-      message:
-        "Login berhasil",
-
-      token,
-
-      admin: {
-
-        id:
-          admin.id,
-
-        name:
-          admin.name,
-
-        email:
-          admin.email,
-
-        role:
-          admin.role,
-
-        whatsapp:
-          admin.whatsapp
+        });
 
       }
 
-    });
+
+      const normalizedEmail =
+        email
+          .trim()
+          .toLowerCase();
+
+
+      const admin =
+        await prisma.admin.findUnique({
+
+          where: {
+
+            email:
+              normalizedEmail
+
+          }
+
+        });
+
+
+      if (!admin) {
+
+        return res.status(401).json({
+
+          error:
+            "Email atau password salah."
+
+        });
+
+      }
+
+
+      const passwordMatch =
+        await bcrypt.compare(
+
+          password,
+
+          admin.password
+
+        );
+
+
+      if (!passwordMatch) {
+
+        return res.status(401).json({
+
+          error:
+            "Email atau password salah."
+
+        });
+
+      }
+
+
+      // ======================================
+      // NAIKKAN TOKEN VERSION
+      // ======================================
+
+      const updatedAdmin =
+        await prisma.admin.update({
+
+          where: {
+
+            id:
+              admin.id
+
+          },
+
+          data: {
+
+            token_version: {
+
+              increment:
+                1
+
+            }
+
+          }
+
+        });
+
+
+      const token =
+        jwt.sign(
+
+          {
+
+            id:
+              updatedAdmin.id,
+
+            tokenVersion:
+              updatedAdmin.token_version
+
+          },
+
+          JWT_SECRET,
+
+          {
+
+            expiresIn:
+              "1d"
+
+          }
+
+        );
+
+
+      res.json({
+
+        message:
+          "Login berhasil.",
+
+        token,
+
+        admin: {
+
+          id:
+            updatedAdmin.id,
+
+          name:
+            updatedAdmin.name,
+
+          email:
+            updatedAdmin.email,
+
+          role:
+            updatedAdmin.role,
+
+          whatsapp:
+            updatedAdmin.whatsapp
+
+        }
+
+      });
 
 
     } catch (error) {
 
-    console.error("ERROR LOGIN ADMIN:", error);
 
-    res.status(500).json({
+      console.error(
 
-      error:
-        error.message ||
-        "Gagal melakukan login"
+        "ERROR LOGIN ADMIN:",
 
-    });
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal melakukan login."
+
+      });
+
+    }
 
   }
 
-});
+);
+
+
+// ======================================
+// LOGOUT ADMIN
+// ======================================
+//
+// Token version dinaikkan.
+// Token lama langsung tidak berlaku.
+//
+
+app.post(
+
+  "/api/admin/logout",
+
+  authenticateAdmin,
+
+  async (req, res) => {
+
+    try {
+
+
+      await prisma.admin.update({
+
+        where: {
+
+          id:
+            req.admin.id
+
+        },
+
+        data: {
+
+          token_version: {
+
+            increment:
+              1
+
+          }
+
+        }
+
+      });
+
+
+      res.json({
+
+        message:
+          "Logout berhasil."
+
+      });
+
+
+    } catch (error) {
+
+
+      console.error(
+
+        "ERROR LOGOUT ADMIN:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal melakukan logout."
+
+      });
+
+    }
+
+  }
+
+);
+
+
+// ==================================================
+// ADMIN MANAGEMENT
+// ==================================================
+
 
 // ======================================
 // GET SEMUA ADMIN
 // ======================================
 
 app.get(
+
   "/api/admin",
+
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
 
-      const admins =
 
+      const admins =
         await prisma.admin.findMany({
 
           orderBy: {
@@ -1096,25 +1718,59 @@ app.get(
             created_at:
               "desc"
 
+          },
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            email:
+              true,
+
+            whatsapp:
+              true,
+
+            role:
+              true,
+
+            is_active:
+              true,
+
+            created_at:
+              true
+
           }
 
         });
 
 
       res.json(
+
         admins
+
       );
 
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR GET ADMINS:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal mengambil data admin"
+          "Gagal mengambil data admin."
 
       });
 
@@ -1133,18 +1789,47 @@ app.get(
 
   "/api/admin/:id",
 
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
 
-      const admin =
 
+      const admin =
         await prisma.admin.findUnique({
 
           where: {
 
             id:
               req.params.id
+
+          },
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            email:
+              true,
+
+            whatsapp:
+              true,
+
+            role:
+              true,
+
+            is_active:
+              true,
+
+            created_at:
+              true
 
           }
 
@@ -1156,7 +1841,7 @@ app.get(
         return res.status(404).json({
 
           error:
-            "Admin tidak ditemukan"
+            "Admin tidak ditemukan."
 
         });
 
@@ -1164,21 +1849,30 @@ app.get(
 
 
       res.json(
+
         admin
+
       );
 
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR GET ADMIN:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal mengambil data admin"
+          "Gagal mengambil data admin."
 
-      });
+        });
 
     }
 
@@ -1195,9 +1889,14 @@ app.post(
 
   "/api/admin",
 
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
+
 
       const {
 
@@ -1207,7 +1906,9 @@ app.post(
 
         password,
 
-        whatsapp
+        whatsapp,
+
+        role
 
       } = req.body;
 
@@ -1227,20 +1928,26 @@ app.post(
         return res.status(400).json({
 
           error:
-            "Semua data wajib diisi"
+            "Nama, email, password, dan WhatsApp wajib diisi."
 
         });
 
       }
 
 
-      const existingAdmin =
+      const normalizedEmail =
+        email
+          .trim()
+          .toLowerCase();
 
+
+      const existingAdmin =
         await prisma.admin.findUnique({
 
           where: {
 
-            email
+            email:
+              normalizedEmail
 
           }
 
@@ -1252,32 +1959,79 @@ app.post(
         return res.status(400).json({
 
           error:
-            "Email admin sudah digunakan"
+            "Email admin sudah digunakan."
 
         });
 
       }
 
 
-      const admin =
+      const hashedPassword =
+        await bcrypt.hash(
 
+          password,
+
+          12
+
+        );
+
+
+      const admin =
         await prisma.admin.create({
 
           data: {
 
-            name,
+            name:
+              name.trim(),
 
-            email,
+            email:
+              normalizedEmail,
 
-            password,
+            password:
+              hashedPassword,
 
-            whatsapp,
+            whatsapp:
+              whatsapp.trim(),
 
             role:
-              "admin",
+
+              role ===
+              "superadmin"
+
+                ? "superadmin"
+
+                : "admin",
 
             is_active:
-              false
+              false,
+
+            token_version:
+              0
+
+          },
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            email:
+              true,
+
+            whatsapp:
+              true,
+
+            role:
+              true,
+
+            is_active:
+              true,
+
+            created_at:
+              true
 
           }
 
@@ -1293,13 +2047,20 @@ app.post(
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR CREATE ADMIN:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal menambahkan admin"
+          "Gagal menambahkan admin."
 
       });
 
@@ -1318,9 +2079,21 @@ app.put(
 
   "/api/admin/:id",
 
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
+
+
+      const {
+
+        id
+
+      } = req.params;
+
 
       const {
 
@@ -1330,20 +2103,77 @@ app.put(
 
         password,
 
-        whatsapp
+        whatsapp,
+
+        role
 
       } = req.body;
 
 
-      const data = {
+      const targetAdmin =
+        await prisma.admin.findUnique({
 
-        name,
+          where: {
 
-        email,
+            id
 
-        whatsapp
+          }
 
-      };
+        });
+
+
+      if (!targetAdmin) {
+
+        return res.status(404).json({
+
+          error:
+            "Admin tidak ditemukan."
+
+        });
+
+      }
+
+
+      const data = {};
+
+
+      if (name) {
+
+        data.name =
+          name.trim();
+
+      }
+
+
+      if (email) {
+
+        data.email =
+          email
+            .trim()
+            .toLowerCase();
+
+      }
+
+
+      if (whatsapp) {
+
+        data.whatsapp =
+          whatsapp.trim();
+
+      }
+
+
+      if (role) {
+
+        data.role =
+          role ===
+          "superadmin"
+
+            ? "superadmin"
+
+            : "admin";
+
+      }
 
 
       if (
@@ -1355,41 +2185,87 @@ app.put(
       ) {
 
         data.password =
-          password;
+          await bcrypt.hash(
+
+            password,
+
+            12
+
+          );
+
+
+        data.token_version = {
+
+          increment:
+            1
+
+        };
 
       }
 
 
-      const admin =
-
+      const updatedAdmin =
         await prisma.admin.update({
 
           where: {
 
-            id:
-              req.params.id
+            id
 
           },
 
-          data
+          data,
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            email:
+              true,
+
+            whatsapp:
+              true,
+
+            role:
+              true,
+
+            is_active:
+              true,
+
+            created_at:
+              true
+
+          }
 
         });
 
 
       res.json(
-        admin
+
+        updatedAdmin
+
       );
 
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR UPDATE ADMIN:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal mengubah admin"
+          "Gagal mengubah admin."
 
       });
 
@@ -1408,48 +2284,91 @@ app.patch(
 
   "/api/admin/:id/activate",
 
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
 
 
-      await prisma.admin.updateMany({
+      const {
 
-        data: {
+        id
 
-          is_active:
-            false
-
-        }
-
-      });
+      } = req.params;
 
 
-      const admin =
-
-        await prisma.admin.update({
+      const targetAdmin =
+        await prisma.admin.findUnique({
 
           where: {
 
-            id:
-              req.params.id
-
-          },
-
-          data: {
-
-            is_active:
-              true
+            id
 
           }
 
         });
 
 
+      if (!targetAdmin) {
+
+        return res.status(404).json({
+
+          error:
+            "Admin tidak ditemukan."
+
+        });
+
+      }
+
+
+      const admin =
+
+        await prisma.$transaction(
+
+          async (tx) => {
+
+
+            await tx.admin.updateMany({
+
+              data: {
+
+                is_active:
+                  false
+
+              }
+
+            });
+
+
+            return tx.admin.update({
+
+              where: {
+
+                id
+
+              },
+
+              data: {
+
+                is_active:
+                  true
+
+              }
+
+            });
+
+          }
+
+        );
+
+
       res.json({
 
         message:
-          "Admin WhatsApp berhasil diaktifkan",
+          "Admin WhatsApp berhasil diaktifkan.",
 
         admin
 
@@ -1458,13 +2377,20 @@ app.patch(
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR ACTIVATE ADMIN:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal mengaktifkan admin"
+          "Gagal mengaktifkan admin."
 
       });
 
@@ -1483,28 +2409,68 @@ app.delete(
 
   "/api/admin/:id",
 
+  authenticateAdmin,
+
+  requireSuperAdmin,
+
   async (req, res) => {
 
     try {
 
 
-      const admin =
+      const {
 
+        id
+
+      } = req.params;
+
+
+      // ======================================
+      // CEGAH HAPUS DIRI SENDIRI
+      // ======================================
+
+      if (
+
+        id ===
+        req.admin.id
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Kamu tidak dapat menghapus akunmu sendiri."
+
+        });
+
+      }
+
+
+      const admin =
         await prisma.admin.findUnique({
 
           where: {
 
-            id:
-              req.params.id
+            id
 
           }
 
         });
 
 
-      if (
+      if (!admin) {
 
-        admin &&
+        return res.status(404).json({
+
+          error:
+            "Admin tidak ditemukan."
+
+        });
+
+      }
+
+
+      if (
 
         admin.is_active
 
@@ -1513,7 +2479,7 @@ app.delete(
         return res.status(400).json({
 
           error:
-            "Admin WhatsApp aktif tidak dapat dihapus"
+            "Admin WhatsApp aktif tidak dapat dihapus. Aktifkan admin lain terlebih dahulu."
 
         });
 
@@ -1524,8 +2490,7 @@ app.delete(
 
         where: {
 
-          id:
-            req.params.id
+          id
 
         }
 
@@ -1535,20 +2500,27 @@ app.delete(
       res.json({
 
         message:
-          "Admin berhasil dihapus"
+          "Admin berhasil dihapus."
 
       });
 
 
     } catch (error) {
 
-      console.error(error);
+
+      console.error(
+
+        "ERROR DELETE ADMIN:",
+
+        error
+
+      );
 
 
       res.status(500).json({
 
         error:
-          "Gagal menghapus admin"
+          "Gagal menghapus admin."
 
       });
 
@@ -1558,9 +2530,19 @@ app.delete(
 
 );
 
+
+// ==================================================
+// ADMIN WHATSAPP AKTIF
+// ==================================================
+
+
 // ======================================
 // GET ADMIN WHATSAPP AKTIF
 // ======================================
+//
+// PUBLIC
+// Dipakai halaman customer untuk tombol WhatsApp
+//
 
 app.get(
 
@@ -1570,13 +2552,26 @@ app.get(
 
     try {
 
-      const admin =
 
+      const admin =
         await prisma.admin.findFirst({
 
           where: {
 
             is_active:
+              true
+
+          },
+
+          select: {
+
+            id:
+              true,
+
+            name:
+              true,
+
+            whatsapp:
               true
 
           }
@@ -1589,337 +2584,26 @@ app.get(
         return res.status(404).json({
 
           error:
-            "Belum ada admin WhatsApp aktif"
+            "Belum ada admin WhatsApp aktif."
 
         });
 
       }
 
 
-      res.json({
-
-        name:
-          admin.name,
-
-        whatsapp:
-          admin.whatsapp
-
-      });
-
-
-    } catch (error) {
-
-      console.error(error);
-
-
-      res.status(500).json({
-
-        error:
-          "Gagal mengambil admin aktif"
-
-      });
-
-    }
-
-  }
-
-);
-
-// ======================================
-// GET SEMUA ADMIN
-// ======================================
-
-app.get("/api/admin", async (req, res) => {
-  try {
-
-    const admins = await prisma.admin.findMany({
-      orderBy: {
-        created_at: "asc"
-      }
-    });
-
-    res.json(admins);
-
-  } catch (error) {
-
-    console.error("ERROR GET ADMIN:", error);
-
-    res.status(500).json({
-      error: "Gagal mengambil data admin"
-    });
-
-  }
-});
-
-
-// ======================================
-// GET ADMIN BERDASARKAN ID
-// ======================================
-
-app.get("/api/admin/:id", async (req, res) => {
-
-  try {
-
-    const { id } = req.params;
-
-    const admin = await prisma.admin.findUnique({
-      where: {
-        id: id
-      }
-    });
-
-    if (!admin) {
-
-      return res.status(404).json({
-        error: "Admin tidak ditemukan"
-      });
-
-    }
-
-    res.json(admin);
-
-  } catch (error) {
-
-    console.error("ERROR GET ADMIN BY ID:", error);
-
-    res.status(500).json({
-      error: "Gagal mengambil data admin"
-    });
-
-  }
-
-});
-
-
-// ======================================
-// TAMBAH ADMIN
-// ======================================
-
-app.post("/api/admin", async (req, res) => {
-
-  try {
-
-    const {
-      name,
-      email,
-      password,
-      whatsapp
-    } = req.body;
-
-
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !whatsapp
-    ) {
-
-      return res.status(400).json({
-
-        error:
-          "Nama, email, password, dan WhatsApp wajib diisi"
-
-      });
-
-    }
-
-
-    const existingAdmin =
-      await prisma.admin.findUnique({
-
-        where: {
-          email: email
-        }
-
-      });
-
-
-    if (existingAdmin) {
-
-      return res.status(400).json({
-
-        error:
-          "Email admin sudah digunakan"
-
-      });
-
-    }
-
-
-    const admin =
-      await prisma.admin.create({
-
-        data: {
-
-          name,
-
-          email,
-
-          password,
-
-          whatsapp,
-
-          is_active: false
-
-        }
-
-      });
-
-
-    res.status(201).json(admin);
-
-
-  } catch (error) {
-
-    console.error("ERROR CREATE ADMIN:", error);
-
-
-    res.status(500).json({
-
-      error:
-        "Gagal menambahkan admin"
-
-    });
-
-  }
-
-});
-
-
-// ======================================
-// EDIT ADMIN
-// ======================================
-
-app.put("/api/admin/:id", async (req, res) => {
-
-  try {
-
-    const { id } = req.params;
-
-    const {
-      name,
-      email,
-      password,
-      whatsapp
-    } = req.body;
-
-
-    const data = {
-
-      name,
-
-      email,
-
-      whatsapp
-
-    };
-
-
-    if (password) {
-
-      data.password =
-        password;
-
-    }
-
-
-    const admin =
-      await prisma.admin.update({
-
-        where: {
-
-          id: id
-
-        },
-
-        data
-
-      });
-
-
-    res.json(admin);
-
-
-  } catch (error) {
-
-    console.error("ERROR UPDATE ADMIN:", error);
-
-
-    res.status(500).json({
-
-      error:
-        "Gagal mengubah admin"
-
-    });
-
-  }
-
-});
-
-
-// ======================================
-// AKTIFKAN ADMIN WHATSAPP
-// ======================================
-
-app.patch(
-  "/api/admin/:id/activate",
-
-  async (req, res) => {
-
-    try {
-
-      const { id } =
-        req.params;
-
-
-      // Matikan semua admin terlebih dahulu
-
-      await prisma.admin.updateMany({
-
-        data: {
-
-          is_active: false
-
-        }
-
-      });
-
-
-      // Aktifkan admin yang dipilih
-
-      const admin =
-        await prisma.admin.update({
-
-          where: {
-
-            id: id
-
-          },
-
-          data: {
-
-            is_active: true
-
-          }
-
-        });
-
-
-      res.json({
-
-        message:
-          "Admin WhatsApp aktif berhasil diubah",
+      res.json(
 
         admin
 
-      });
+      );
 
 
     } catch (error) {
 
+
       console.error(
 
-        "ERROR ACTIVATE ADMIN:",
+        "ERROR GET ACTIVE ADMIN:",
 
         error
 
@@ -1929,7 +2613,7 @@ app.patch(
       res.status(500).json({
 
         error:
-          "Gagal mengaktifkan admin"
+          "Gagal mengambil admin aktif."
 
       });
 
@@ -1940,79 +2624,19 @@ app.patch(
 );
 
 
-// ======================================
-// HAPUS ADMIN
-// ======================================
+// ==================================================
+// ERROR HANDLER
+// ==================================================
 
-app.delete("/api/admin/:id", async (req, res) => {
+app.use(
 
-  try {
-
-    const { id } = req.params;
-
-
-    const admin =
-      await prisma.admin.findUnique({
-
-        where: {
-
-          id: id
-
-        }
-
-      });
-
-
-    if (!admin) {
-
-      return res.status(404).json({
-
-        error:
-          "Admin tidak ditemukan"
-
-      });
-
-    }
-
-
-    if (admin.is_active) {
-
-      return res.status(400).json({
-
-        error:
-          "Admin WhatsApp aktif tidak boleh dihapus. Aktifkan admin lain terlebih dahulu."
-
-      });
-
-    }
-
-
-    await prisma.admin.delete({
-
-      where: {
-
-        id: id
-
-      }
-
-    });
-
-
-    res.json({
-
-      message:
-        "Admin berhasil dihapus"
-
-    });
-
-
-  } catch (error) {
+  (err, req, res, next) => {
 
     console.error(
 
-      "ERROR DELETE ADMIN:",
+      "UNHANDLED ERROR:",
 
-      error
+      err
 
     );
 
@@ -2020,17 +2644,18 @@ app.delete("/api/admin/:id", async (req, res) => {
     res.status(500).json({
 
       error:
-        "Gagal menghapus admin"
+        "Terjadi kesalahan pada server."
 
     });
 
   }
 
-});
+);
 
-// ======================================
+
+// ==================================================
 // START SERVER
-// ======================================
+// ==================================================
 
 app.listen(
 
