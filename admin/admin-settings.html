@@ -10,7 +10,9 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Pengaturan Admin - Armand Farm</title>
+  <title>
+    Pengaturan Admin - Armand Farm
+  </title>
 
   <link
     rel="stylesheet"
@@ -19,83 +21,87 @@
 
 </head>
 
+
 <body>
 
-  <!-- SIDEBAR -->
 
-  <aside class="sidebar">
+  <!-- =========================
+       HEADER
+  ========================== -->
 
-    <div class="sidebar-logo">
-
-      🥚
-
-      <span>
-
-        Armand Farm
-
-      </span>
-
-    </div>
+  <header class="admin-header">
 
 
-    <nav class="sidebar-menu">
+    <!-- BRAND -->
 
-      <a
-        href="index.html"
-        class="menu-item"
-      >
+    <div class="brand">
 
-        <span>📊</span>
+      <div class="brand-logo">
 
-        <span>Dashboard</span>
+        🥚
 
-      </a>
+      </div>
 
-      <a
-        href="admin-settings.html"
-        class="menu-item active"
-      >
-
-        <span>⚙️</span>
-
-        <span>Pengaturan Admin</span>
-
-      </a>
-
-    </nav>
-
-
-    <div class="sidebar-bottom">
-
-      <button
-        class="store-button"
-        onclick="goToStore()"
-      >
-
-        🛍️
-
-        Lihat Toko
-
-      </button>
-
-    </div>
-
-  </aside>
-
-
-  <!-- MAIN CONTENT -->
-
-  <main class="main-content">
-
-    <header class="topbar">
 
       <div>
 
         <h1>
 
-          Pengaturan Admin
+          Armand<span>Farm</span>
 
         </h1>
+
+
+        <p>
+
+          Dashboard Admin
+
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- HEADER ACTIONS -->
+
+    <div class="header-actions">
+
+
+      <a
+        href="index.html"
+        class="header-button"
+      >
+
+        📊 Dashboard
+
+      </a>
+
+    </div>
+
+
+  </header>
+
+
+  <!-- =========================
+       MAIN CONTENT
+  ========================== -->
+
+  <main class="settings-container">
+
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-header">
+
+
+      <div>
+
+        <h2>
+
+          Pengaturan Admin
+
+        </h2>
 
 
         <p>
@@ -112,18 +118,26 @@
         onclick="openAddAdminModal()"
       >
 
-        ➕ Tambah Admin
+        ➕
+
+        Tambah Admin
 
       </button>
 
-    </header>
+
+    </section>
 
 
-    <!-- ADMIN WHATSAPP AKTIF -->
 
-    <section class="active-admin-section">
+    <!-- =========================
+         ADMIN WHATSAPP AKTIF
+    ========================== -->
 
-      <div class="section-title">
+    <section class="settings-section">
+
+
+      <div class="section-header">
+
 
         <div>
 
@@ -142,6 +156,7 @@
 
         </div>
 
+
       </div>
 
 
@@ -158,14 +173,20 @@
 
       </div>
 
+
     </section>
 
 
-    <!-- DAFTAR ADMIN -->
 
-    <section class="admin-section">
+    <!-- =========================
+         DAFTAR ADMIN
+    ========================== -->
 
-      <div class="section-title">
+    <section class="settings-section">
+
+
+      <div class="section-header">
+
 
         <div>
 
@@ -184,6 +205,7 @@
 
         </div>
 
+
       </div>
 
 
@@ -200,21 +222,89 @@
 
       </div>
 
+
     </section>
+
 
   </main>
 
 
-  <!-- MODAL ADMIN -->
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+  <footer class="admin-footer">
+
+
+    <div class="footer-brand">
+
+
+      <div class="footer-logo">
+
+        🥚
+
+      </div>
+
+
+      <div>
+
+        <h3>
+
+          Armand Farm
+
+        </h3>
+
+
+        <p>
+
+          Telur segar berkualitas langsung dari peternakan.
+
+        </p>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-contact">
+
+      <p>
+
+        📍 Bandung, Indonesia
+
+      </p>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      © 2026 Armand Farm. Semua hak dilindungi.
+
+    </div>
+
+
+  </footer>
+
+
+
+  <!-- =========================
+       MODAL ADMIN
+  ========================== -->
 
   <div
     id="admin-modal"
     class="modal"
   >
 
+
     <div class="modal-content">
 
+
       <div class="modal-header">
+
 
         <div>
 
@@ -243,12 +333,15 @@
 
         </button>
 
+
       </div>
+
 
 
       <form
         id="admin-form"
       >
+
 
         <input
           type="hidden"
@@ -256,7 +349,10 @@
         >
 
 
-        <label for="admin-name">
+
+        <label
+          for="admin-name"
+        >
 
           Nama Admin
 
@@ -271,7 +367,10 @@
         >
 
 
-        <label for="admin-email">
+
+        <label
+          for="admin-email"
+        >
 
           Email
 
@@ -286,7 +385,10 @@
         >
 
 
-        <label for="admin-whatsapp">
+
+        <label
+          for="admin-whatsapp"
+        >
 
           Nomor WhatsApp
 
@@ -301,7 +403,10 @@
         >
 
 
-        <label for="admin-password">
+
+        <label
+          for="admin-password"
+        >
 
           Password
 
@@ -324,7 +429,11 @@
         </small>
 
 
-        <div class="modal-actions">
+
+        <div
+          class="modal-actions"
+        >
+
 
           <button
             type="button"
@@ -346,16 +455,24 @@
 
           </button>
 
+
         </div>
+
 
       </form>
 
+
     </div>
+
 
   </div>
 
 
-  <script src="admin-settings.js"></script>
+
+  <script
+    src="admin-settings.js"
+  ></script>
+
 
 </body>
 

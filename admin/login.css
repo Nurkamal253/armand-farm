@@ -1,3 +1,7 @@
+/* =========================
+   RESET
+========================= */
+
 * {
 
   margin: 0;
@@ -9,22 +13,92 @@
 }
 
 
+/* =========================
+   BODY
+========================= */
+
 body {
 
-  font-family: Arial, sans-serif;
+  font-family:
+    Arial,
+    sans-serif;
 
-  min-height: 100vh;
+  color: #33251d;
 
-  background: #eaf1e3;
-
-  color: #263322;
+  background: #faf9f6;
 
 }
 
 
-.login-container {
+/* =========================
+   LOGIN PAGE
+========================= */
+
+.login-page {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
 
   min-height: 100vh;
+
+}
+
+
+/* =========================
+   BAGIAN KIRI
+========================= */
+
+.login-visual {
+
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+
+    linear-gradient(
+
+      135deg,
+
+      #fff7e8,
+
+      #fce8c5
+
+    );
+
+}
+
+
+.visual-content {
+
+  position: relative;
+
+  height: 100%;
+
+  padding: 55px 12%;
+
+}
+
+
+/* =========================
+   LOGO
+========================= */
+
+.logo {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+
+.egg-logo {
 
   display: flex;
 
@@ -32,41 +106,387 @@ body {
 
   justify-content: center;
 
-  padding: 20px;
+  width: 45px;
+
+  height: 55px;
+
+  border-radius: 50%;
+
+  background:
+
+    linear-gradient(
+
+      145deg,
+
+      #f6c27b,
+
+      #b8643d
+
+    );
+
+  font-size: 25px;
 
 }
 
+
+.logo h1 {
+
+  color: #33251d;
+
+  font-size: 27px;
+
+}
+
+
+.logo h1 span {
+
+  color: #f0a900;
+
+}
+
+
+.logo p {
+
+  margin-top: 3px;
+
+  color: #88786b;
+
+  font-size: 11px;
+
+}
+
+
+/* =========================
+   TEXT KIRI
+========================= */
+
+.visual-text {
+
+  position: absolute;
+
+  top: 38%;
+
+  max-width: 500px;
+
+}
+
+
+.small-title {
+
+  margin-bottom: 18px;
+
+  color: #c78600;
+
+  font-size: 12px;
+
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+}
+
+
+.visual-text h2 {
+
+  margin-bottom: 20px;
+
+  color: #33251d;
+
+  font-size: 44px;
+
+  line-height: 1.15;
+
+}
+
+
+.visual-text > p:last-child {
+
+  max-width: 400px;
+
+  color: #6e6259;
+
+  font-size: 16px;
+
+  line-height: 1.7;
+
+}
+
+
+/* =========================
+   DEKORASI
+========================= */
+
+.farm-decoration {
+
+  position: absolute;
+
+  right: 10%;
+
+  bottom: 10%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 150px;
+
+  height: 180px;
+
+  border-radius: 50%;
+
+  background:
+
+    linear-gradient(
+
+      145deg,
+
+      #ffd08b,
+
+      #c36d43
+
+    );
+
+  font-size: 70px;
+
+  box-shadow:
+
+    0 20px 30px
+
+    rgba(
+
+      120,
+
+      70,
+
+      30,
+
+      0.18
+
+    );
+
+}
+
+
+/* =========================
+   LOGIN SECTION
+========================= */
+
+.login-section {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 40px;
+
+  background: #ffffff;
+
+}
+
+
+/* =========================
+   LOGIN CARD
+========================= */
 
 .login-card {
 
   width: 100%;
 
-  max-width: 420px;
-
-  padding: 40px;
-
-  background: white;
-
-  border-radius: 18px;
-
-  box-shadow:
-
-    0 10px 35px
-
-    rgba(0, 0, 0, 0.1);
-
-  text-align: center;
+  max-width: 430px;
 
 }
 
 
-.login-logo {
+/* =========================
+   LOGIN HEADER
+========================= */
 
-  width: 70px;
+.login-header {
 
-  height: 70px;
+  margin-bottom: 32px;
 
-  margin: 0 auto 20px;
+}
+
+
+.login-header h2 {
+
+  margin-bottom: 10px;
+
+  color: #33251d;
+
+  font-size: 30px;
+
+}
+
+
+.login-header p {
+
+  color: #81776d;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+
+}
+
+
+/* =========================
+   FORM
+========================= */
+
+.form-group {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  margin-bottom: 20px;
+
+}
+
+
+.form-group label {
+
+  color: #4b392c;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+}
+
+
+.form-group input {
+
+  width: 100%;
+
+  padding: 14px 15px;
+
+  border: 1px solid #e4ddd2;
+
+  border-radius: 9px;
+
+  outline: none;
+
+  color: #33251d;
+
+  background: #fffdf9;
+
+  font-size: 14px;
+
+  transition: 0.2s;
+
+}
+
+
+.form-group input:focus {
+
+  border-color: #f0ae18;
+
+  box-shadow:
+
+    0 0 0 3px
+
+    rgba(
+
+      240,
+
+      174,
+
+      24,
+
+      0.12
+
+    );
+
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+.login-error {
+
+  display: none;
+
+  margin-bottom: 15px;
+
+  padding: 11px;
+
+  border-radius: 8px;
+
+  background: #fff0f0;
+
+  color: #c0392b;
+
+  font-size: 13px;
+
+}
+
+
+/* =========================
+   LOGIN BUTTON
+========================= */
+
+.login-button {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  width: 100%;
+
+  padding: 14px 18px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: #f5b400;
+
+  color: #33251d;
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  font-weight: bold;
+
+  transition: 0.2s;
+
+}
+
+
+.login-button:hover {
+
+  background: #e5a500;
+
+  transform: translateY(-1px);
+
+}
+
+
+.login-button span {
+
+  font-size: 20px;
+
+}
+
+
+/* =========================
+   FOOTER LOGIN
+========================= */
+
+.login-footer {
 
   display: flex;
 
@@ -74,175 +494,145 @@ body {
 
   justify-content: center;
 
-  background: #edf4e9;
+  gap: 8px;
 
-  border-radius: 18px;
+  margin-top: 28px;
 
-  font-size: 38px;
+  padding-top: 20px;
 
-}
-
-
-.login-card h1 {
-
-  font-size: 28px;
-
-  margin-bottom: 5px;
+  border-top: 1px solid #eee9e1;
 
 }
 
 
-.login-subtitle {
-
-  color: #687267;
-
-  margin-bottom: 30px;
-
-}
-
-
-#login-form {
-
-  display: flex;
-
-  flex-direction: column;
-
-  text-align: left;
-
-}
-
-
-#login-form label {
-
-  margin-bottom: 7px;
-
-  margin-top: 15px;
-
-  font-weight: bold;
-
-  font-size: 14px;
-
-}
-
-
-#login-form input {
-
-  padding: 13px;
-
-  border: 1px solid #dce4d8;
-
-  border-radius: 8px;
+.login-footer span {
 
   font-size: 15px;
 
-  outline: none;
+}
+
+
+.login-footer p {
+
+  color: #958b82;
+
+  font-size: 12px;
 
 }
 
 
-#login-form input:focus {
+/* =========================
+   MOBILE LOGO
+========================= */
 
-  border-color: #527a42;
-
-  box-shadow:
-
-    0 0 0 3px
-
-    rgba(82, 122, 66, 0.12);
-
-}
-
-
-#login-button {
-
-  margin-top: 25px;
-
-  padding: 14px;
-
-  border: none;
-
-  border-radius: 8px;
-
-  background: #527a42;
-
-  color: white;
-
-  font-size: 16px;
-
-  font-weight: bold;
-
-  cursor: pointer;
-
-}
-
-
-#login-button:hover {
-
-  background: #3f6332;
-
-}
-
-
-#login-button:disabled {
-
-  opacity: 0.6;
-
-  cursor: not-allowed;
-
-}
-
-
-.error-message {
+.mobile-logo {
 
   display: none;
 
-  margin-top: 15px;
-
-  padding: 10px;
-
-  border-radius: 8px;
-
-  background: #ffe1e1;
-
-  color: #a62e2e;
-
-  font-size: 14px;
-
-  text-align: center;
-
 }
 
 
-.back-button {
+/* =========================
+   RESPONSIVE
+========================= */
 
-  display: block;
+@media (max-width: 800px) {
 
-  margin-top: 25px;
+  .login-page {
 
-  color: #527a42;
-
-  text-decoration: none;
-
-  font-size: 14px;
-
-}
-
-
-.back-button:hover {
-
-  text-decoration: underline;
-
-}
-
-
-@media (max-width: 500px) {
-
-
-  .login-card {
-
-    padding: 30px 20px;
+    display: block;
 
   }
 
+
+  .login-visual {
+
+    display: none;
+
+  }
+
+
+  .login-section {
+
+    min-height: 100vh;
+
+    padding: 25px;
+
+  }
+
+
+  .mobile-logo {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 55px;
+
+    height: 55px;
+
+    margin-bottom: 22px;
+
+    border-radius: 50%;
+
+    background:
+
+      linear-gradient(
+
+        145deg,
+
+        #f6c27b,
+
+        #b8643d
+
+      );
+
+    font-size: 28px;
+
+  }
+
+
+  .login-header h2 {
+
+    font-size: 26px;
+
+  }
+
+}
+
+/* =========================
+   KEMBALI KE TOKO
+========================= */
+
+.back-to-store {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 35px;
+
+  color: #8a6a32;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  font-weight: bold;
+
+  transition: 0.2s;
+
+}
+
+
+.back-to-store:hover {
+
+  color: #d28b00;
+
+  transform: translateX(-3px);
 
 }
