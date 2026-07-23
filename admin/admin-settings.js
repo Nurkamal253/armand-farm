@@ -59,9 +59,6 @@ async function adminFetch(
   };
 
 
-  // PENTING:
-  // DI SINI HARUS fetch(), BUKAN adminFetch()
-
   const response =
     await fetch(
 
@@ -98,13 +95,27 @@ async function adminFetch(
     );
 
 
-    alert(
-      "Sesi login sudah berakhir. Silakan login kembali."
+    showNotification(
+
+      "Sesi login sudah berakhir. Silakan login kembali.",
+
+      "error"
+
     );
 
 
-    window.location.href =
-      "login.html";
+    setTimeout(
+
+      () => {
+
+        window.location.href =
+          "login.html";
+
+      },
+
+      1800
+
+    );
 
 
     return;
@@ -113,6 +124,405 @@ async function adminFetch(
 
 
   return response;
+
+}
+
+
+// ======================================
+// CUSTOM POPUP
+// ======================================
+
+function createPopupContainer() {
+
+  let container =
+
+    document.getElementById(
+
+      "custom-popup-container"
+
+    );
+
+
+  if (!container) {
+
+    container =
+      document.createElement(
+
+        "div"
+
+      );
+
+
+    container.id =
+      "custom-popup-container";
+
+
+    document.body.appendChild(
+
+      container
+
+    );
+
+  }
+
+
+  return container;
+
+}
+
+
+// ======================================
+// NOTIFICATION POPUP
+// ======================================
+
+function showNotification(
+
+  message,
+
+  type = "success"
+
+) {
+
+  const container =
+    createPopupContainer();
+
+
+  const popup =
+    document.createElement(
+
+      "div"
+
+    );
+
+
+  popup.className =
+    `custom-notification ${type}`;
+
+
+  let icon =
+    "✓";
+
+
+  if (
+
+    type === "error"
+
+  ) {
+
+    icon =
+      "✕";
+
+  }
+
+
+  if (
+
+    type === "warning"
+
+  ) {
+
+    icon =
+      "!";
+
+  }
+
+
+  popup.innerHTML = `
+
+    <div class="notification-icon">
+
+      ${icon}
+
+    </div>
+
+
+    <div class="notification-message">
+
+      ${message}
+
+    </div>
+
+
+    <button
+
+      class="notification-close"
+
+      onclick="this.parentElement.remove()"
+
+    >
+
+      ✕
+
+    </button>
+
+  `;
+
+
+  container.appendChild(
+
+    popup
+
+  );
+
+
+  setTimeout(
+
+    () => {
+
+      popup.classList.add(
+
+        "show"
+
+      );
+
+    },
+
+    10
+
+  );
+
+
+  setTimeout(
+
+    () => {
+
+      popup.classList.remove(
+
+        "show"
+
+      );
+
+
+      setTimeout(
+
+        () => {
+
+          popup.remove();
+
+        },
+
+        300
+
+      );
+
+    },
+
+    3500
+
+  );
+
+}
+
+
+// ======================================
+// KONFIRMASI CUSTOM
+// ======================================
+
+function showConfirmPopup(
+
+  message,
+
+  title = "Konfirmasi"
+
+) {
+
+  return new Promise(
+
+    resolve => {
+
+
+      const container =
+        createPopupContainer();
+
+
+      const overlay =
+        document.createElement(
+
+          "div"
+
+        );
+
+
+      overlay.className =
+        "custom-confirm-overlay";
+
+
+      overlay.innerHTML = `
+
+        <div class="custom-confirm-box">
+
+          <div class="confirm-icon">
+
+            ?
+
+          </div>
+
+
+          <h3>
+
+            ${title}
+
+          </h3>
+
+
+          <p>
+
+            ${message}
+
+          </p>
+
+
+          <div class="confirm-actions">
+
+            <button
+
+              class="confirm-cancel-button"
+
+            >
+
+              Batal
+
+            </button>
+
+
+            <button
+
+              class="confirm-ok-button"
+
+            >
+
+              Ya, Lanjutkan
+
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+
+      container.appendChild(
+
+        overlay
+
+      );
+
+
+      const cancelButton =
+        overlay.querySelector(
+
+          ".confirm-cancel-button"
+
+        );
+
+
+      const okButton =
+        overlay.querySelector(
+
+          ".confirm-ok-button"
+
+        );
+
+
+      function closePopup(
+
+        result
+
+      ) {
+
+        overlay.classList.add(
+
+          "closing"
+
+        );
+
+
+        setTimeout(
+
+          () => {
+
+            overlay.remove();
+
+
+            resolve(
+
+              result
+
+            );
+
+          },
+
+          250
+
+        );
+
+      }
+
+
+      cancelButton.addEventListener(
+
+        "click",
+
+        () => {
+
+          closePopup(
+
+            false
+
+          );
+
+        }
+
+      );
+
+
+      okButton.addEventListener(
+
+        "click",
+
+        () => {
+
+          closePopup(
+
+            true
+
+          );
+
+        }
+
+      );
+
+
+      overlay.addEventListener(
+
+        "click",
+
+        event => {
+
+
+          if (
+
+            event.target === overlay
+
+          ) {
+
+            closePopup(
+
+              false
+
+            );
+
+          }
+
+        }
+
+      );
+
+
+    }
+
+  );
 
 }
 
@@ -705,11 +1115,13 @@ async function editAdmin(
     );
 
 
-    alert(
+    showNotification(
 
       error.message ||
 
-      "Gagal mengambil data admin"
+      "Gagal mengambil data admin",
+
+      "error"
 
     );
 
@@ -880,13 +1292,15 @@ document
         }
 
 
-        alert(
+        showNotification(
 
           id
 
             ? "Admin berhasil diperbarui"
 
-            : "Admin berhasil ditambahkan"
+            : "Admin berhasil ditambahkan",
+
+          "success"
 
         );
 
@@ -909,11 +1323,13 @@ document
         );
 
 
-        alert(
+        showNotification(
 
           error.message ||
 
-          "Gagal menyimpan admin"
+          "Gagal menyimpan admin",
+
+          "error"
 
         );
 
@@ -937,9 +1353,11 @@ async function activateAdmin(
 
   const confirmation =
 
-    confirm(
+    await showConfirmPopup(
 
-      "Jadikan admin ini sebagai penerima WhatsApp pesanan?"
+      "Jadikan admin ini sebagai penerima WhatsApp pesanan?",
+
+      "Aktifkan Admin WhatsApp"
 
     );
 
@@ -996,9 +1414,11 @@ async function activateAdmin(
     }
 
 
-    alert(
+    showNotification(
 
-      "Admin WhatsApp aktif berhasil diubah"
+      "Admin WhatsApp aktif berhasil diubah",
+
+      "success"
 
     );
 
@@ -1018,11 +1438,13 @@ async function activateAdmin(
     );
 
 
-    alert(
+    showNotification(
 
       error.message ||
 
-      "Gagal mengaktifkan admin"
+      "Gagal mengaktifkan admin",
+
+      "error"
 
     );
 
@@ -1044,9 +1466,11 @@ async function deleteAdmin(
 
   const confirmation =
 
-    confirm(
+    await showConfirmPopup(
 
-      "Apakah kamu yakin ingin menghapus admin ini?"
+      "Apakah kamu yakin ingin menghapus admin ini?",
+
+      "Hapus Admin"
 
     );
 
@@ -1103,9 +1527,11 @@ async function deleteAdmin(
     }
 
 
-    alert(
+    showNotification(
 
-      "Admin berhasil dihapus"
+      "Admin berhasil dihapus",
+
+      "success"
 
     );
 
@@ -1125,11 +1551,13 @@ async function deleteAdmin(
     );
 
 
-    alert(
+    showNotification(
 
       error.message ||
 
-      "Gagal menghapus admin"
+      "Gagal menghapus admin",
+
+      "error"
 
     );
 
