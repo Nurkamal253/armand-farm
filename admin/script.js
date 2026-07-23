@@ -389,7 +389,7 @@ function renderProducts() {
 
 
       productCard.className =
-        "product-item";
+        "product-card";
 
 
       productCard.innerHTML = `

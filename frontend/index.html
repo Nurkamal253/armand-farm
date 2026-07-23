@@ -10,7 +10,7 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Armand Farm</title>
+  <title>Armand Farm | Telur Segar Berkualitas</title>
 
   <link
     rel="stylesheet"
@@ -24,37 +24,153 @@
 
 
   <!-- =========================
-       NAVBAR
+       TOP BAR
   ========================== -->
 
-<header class="navbar">
+  <div class="top-bar">
 
-  <div class="logo">
-    🥚 Armand Farm
-  </div>
+    <div class="top-bar-left">
 
-  <div class="navbar-actions">
+      <span>
+        🥚 Fresh Every Day
+      </span>
 
-    <button
-      class="admin-dashboard-button"
-      onclick="window.location.href='../admin/index.html'"
-    >
-      ⚙️ Admin
-    </button>
+      <span>
+        ✓ Telur Berkualitas
+      </span>
 
-    <button
-      class="cart-button"
-      id="cart-button"
-    >
-      🛒 Keranjang
-      (
-      <span id="cart-count">0</span>
-      )
-    </button>
+      <span>
+        🚚 Pengiriman Cepat & Aman
+      </span>
+
+    </div>
+
 
   </div>
 
-</header>
+
+  <!-- =========================
+       MAIN HEADER
+  ========================== -->
+
+  <header class="main-header">
+
+
+    <!-- LOGO -->
+
+    <div class="brand-logo">
+
+      <div class="brand-icon">
+        🥚
+      </div>
+
+
+      <div class="brand-text">
+
+        <h1>
+          Armand<span>Farm</span>
+        </h1>
+
+        <p>
+          Fresh & Quality Eggs
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- HEADER ACTIONS -->
+
+    <div class="header-actions">
+
+
+      <button
+        class="admin-dashboard-button"
+        onclick="window.location.href='../admin/index.html'"
+      >
+
+        ⚙️ Admin
+
+      </button>
+
+
+      <button
+        class="cart-button"
+        id="cart-button"
+      >
+
+        🛒
+
+        <span>
+          Keranjang
+        </span>
+
+        <b
+          id="cart-count"
+        >
+          0
+        </b>
+
+      </button>
+
+    </div>
+
+
+  </header>
+
+
+  <!-- =========================
+       NAVIGATION
+  ========================== -->
+
+  <nav class="main-nav">
+
+
+    <button
+      class="category-button"
+    >
+
+      ☰
+
+      <span>
+        Semua Kategori
+      </span>
+
+    </button>
+
+
+    <div class="nav-links">
+
+      <a
+        href="#home"
+        class="active"
+      >
+        Beranda
+      </a>
+
+      <a
+        href="#products"
+      >
+        Produk
+      </a>
+
+      <a
+        href="#about"
+      >
+        Tentang Kami
+      </a>
+
+      <a
+        href="#contact"
+      >
+        Kontak
+      </a>
+
+    </div>
+
+
+  </nav>
 
 
   <!-- =========================
@@ -64,72 +180,110 @@
   <main>
 
 
-    <!-- HERO -->
+    <!-- =========================
+         HERO
+    ========================== -->
 
-    <section class="hero">
+    <section
+      class="hero"
+      id="home"
+    >
 
 
       <div class="hero-content">
 
 
-        <p class="subtitle">
+        <p class="hero-label">
 
-          TELUR SEGAR DARI PETERNAKAN
+          🥚 TELUR SEGAR DARI PETERNAKAN
 
         </p>
 
 
-        <h1>
+        <h2>
 
-          Kualitas Segar,
+          Telur Segar
 
           <br>
 
-          Langsung dari
+          Setiap Hari!
 
-          <span>
-
-            Armand Farm
-
-          </span>
-
-        </h1>
+        </h2>
 
 
-        <p>
+        <p class="hero-description">
 
-          Nikmati telur segar berkualitas
+          Dari peternakan pilihan untuk keluarga sehat Anda.
 
-          untuk kebutuhan rumah tangga,
+          Nikmati telur berkualitas dengan harga terbaik
 
-          usaha, dan keluarga Anda.
+          dan pengiriman yang aman.
 
         </p>
 
 
-        <button
+        <div class="hero-buttons">
 
-          class="primary-button"
 
-          onclick="
+          <button
 
-            document
+            class="primary-button"
 
-              .getElementById('products')
+            onclick="
 
-              .scrollIntoView({
+              document
 
-                behavior: 'smooth'
+                .getElementById('products')
 
-              })
+                .scrollIntoView({
 
-          "
+                  behavior: 'smooth'
 
-        >
+                })
 
-          Belanja Sekarang
+            "
 
-        </button>
+          >
+
+            Belanja Sekarang
+
+            <span>
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="hero-visual">
+
+
+        <div class="hero-egg">
+
+          🥚
+
+        </div>
+
+
+        <div class="quality-badge">
+
+          <strong>
+            ✓
+          </strong>
+
+          <span>
+            100%
+          </span>
+
+          <small>
+            Segar & Berkualitas
+          </small>
+
+        </div>
 
 
       </div>
@@ -138,7 +292,118 @@
     </section>
 
 
-    <!-- PRODUK -->
+    <!-- =========================
+         ADVANTAGES
+    ========================== -->
+
+    <section
+      class="advantages"
+      id="advantages"
+    >
+
+
+      <div class="advantage-item">
+
+
+        <div class="advantage-icon">
+          🛡️
+        </div>
+
+
+        <div>
+
+          <h3>
+            Telur Berkualitas
+          </h3>
+
+          <p>
+            Dari peternakan langsung ke tangan Anda
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="advantage-item">
+
+
+        <div class="advantage-icon">
+          🚚
+        </div>
+
+
+        <div>
+
+          <h3>
+            Pengiriman Cepat
+          </h3>
+
+          <p>
+            Sampai ke tangan Anda
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="advantage-item">
+
+
+        <div class="advantage-icon">
+          📦
+        </div>
+
+
+        <div>
+
+          <h3>
+            Pengemasan Aman
+          </h3>
+
+          <p>
+            Telur sampai tanpa pecah
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="advantage-item">
+
+
+        <div class="advantage-icon">
+          🏷️
+        </div>
+
+
+        <div>
+
+          <h3>
+            Harga Terbaik
+          </h3>
+
+          <p>
+            Belanja lebih hemat
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+    </section>
+
+
+    <!-- =========================
+         PRODUCTS
+    ========================== -->
 
     <section
 
@@ -155,21 +420,35 @@
         <div>
 
 
-          <p class="subtitle">
+          <p class="section-label">
 
-            PRODUK KAMI
+            PRODUK PILIHAN
 
           </p>
 
 
           <h2>
 
-            Telur Segar Pilihan
+            Produk Terlaris
 
           </h2>
 
 
         </div>
+
+
+        <a
+          href="#products"
+          class="view-all"
+        >
+
+          Lihat Semua
+
+          <span>
+            →
+          </span>
+
+        </a>
 
 
       </div>
@@ -200,9 +479,8 @@
 
 
   <!-- =========================
-       MODAL KERANJANG
+       CART MODAL
   ========================== -->
-
 
   <div
 
@@ -220,9 +498,7 @@
 
 
         <h2>
-
           Keranjang Belanja
-
         </h2>
 
 
@@ -261,9 +537,7 @@
 
         <h3>
 
-
           Total:
-
 
           <span
 
@@ -302,9 +576,8 @@
 
 
   <!-- =========================
-       MODAL CHECKOUT
+       CHECKOUT MODAL
   ========================== -->
-
 
   <div
 
@@ -350,9 +623,7 @@
 
 
         <label
-
           for="customer-name"
-
         >
 
           Nama Lengkap
@@ -374,9 +645,7 @@
 
 
         <label
-
           for="customer-phone"
-
         >
 
           Nomor WhatsApp
@@ -397,26 +666,46 @@
         >
 
 
-        <label for="customer-address">
-  Alamat Pengiriman
-</label>
+        <label
+          for="customer-address"
+        >
 
-<textarea
-  id="customer-address"
-  placeholder="Masukkan alamat lengkap"
-  required
-></textarea>
+          Alamat Pengiriman
+
+        </label>
 
 
-<label for="customer-note">
-  Catatan Pesanan
-  <span>(Opsional)</span>
-</label>
+        <textarea
 
-<textarea
-  id="customer-note"
-  placeholder="Contoh: Kirim sore hari, jangan ditumpuk terlalu berat, dll."
-></textarea>
+          id="customer-address"
+
+          placeholder="Masukkan alamat lengkap"
+
+          required
+
+        ></textarea>
+
+
+        <label
+          for="customer-note"
+        >
+
+          Catatan Pesanan
+
+          <span>
+            (Opsional)
+          </span>
+
+        </label>
+
+
+        <textarea
+
+          id="customer-note"
+
+          placeholder="Contoh: Kirim sore hari..."
+
+        ></textarea>
 
 
         <div
@@ -442,9 +731,7 @@
 
           <h3>
 
-
             Total:
-
 
             <span
 
@@ -486,9 +773,8 @@
 
 
   <!-- =========================
-       MODAL PESANAN BERHASIL
+       SUCCESS MODAL
   ========================== -->
-
 
   <div
 
@@ -592,58 +878,10 @@
 
   </div>
 
-  <!-- MODAL PESANAN BERHASIL -->
-
-<div id="success-modal" class="success-modal">
-
-  <div class="success-content">
-
-    <div class="success-icon">
-      🎉
-    </div>
-
-    <h2>
-      Pesanan Berhasil Dibuat!
-    </h2>
-
-    <p>
-      Terima kasih telah berbelanja di Armand Farm.
-    </p>
-
-    <div class="success-order-info">
-
-      <p>
-        Total Pesanan:
-      </p>
-
-      <strong id="success-total">
-        Rp0
-      </strong>
-
-    </div>
-
-    <button
-      id="whatsapp-button"
-      class="whatsapp-button"
-    >
-      💬 Konfirmasi via WhatsApp
-    </button>
-
-    <button
-      id="close-success"
-      class="close-success-button"
-    >
-      Tutup
-    </button>
-
-  </div>
-
-</div>
 
   <!-- =========================
        FOOTER
   ========================== -->
-
 
   <footer
 
@@ -651,13 +889,42 @@
 
   >
 
-    <p>
 
-      © 2026 Armand Farm.
+    <div class="footer-content">
 
-      Semua hak dilindungi.
 
-    </p>
+      <div>
+
+        <h2>
+          🥚 Armand Farm
+        </h2>
+
+        <p>
+          Telur segar berkualitas langsung dari peternakan.
+        </p>
+
+      </div>
+
+
+      <div
+        id="contact"
+      >
+      
+        <p>
+          📍 Bandung, Indonesia
+        </p>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      © 2026 Armand Farm. Semua hak dilindungi.
+
+    </div>
 
 
   </footer>
@@ -668,6 +935,7 @@
     src="script.js"
 
   ></script>
+
 
 </body>
 

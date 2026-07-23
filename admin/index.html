@@ -10,17 +10,14 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Admin Dashboard</title>
+  <title>Dashboard Admin - Armand Farm</title>
 
 
   <script>
 
-    if (
-      !localStorage.getItem("adminToken")
-    ) {
+    if (!localStorage.getItem("adminToken")) {
 
-      window.location.href =
-        "login.html";
+      window.location.href = "login.html";
 
     }
 
@@ -34,338 +31,705 @@
 
 </head>
 
+
 <body>
+
+
+  <!-- =========================
+       HEADER
+  ========================== -->
 
   <header class="admin-header">
 
+
     <div class="brand">
-      <h1>🥚 Armand Farm</h1>
-      <p>Dashboard Admin</p>
+
+
+      <div class="brand-logo">
+
+        🥚
+
+      </div>
+
+
+      <div>
+
+        <h1>
+
+          Armand<span>Farm</span>
+
+        </h1>
+
+
+        <p>
+
+          Dashboard Admin
+
+        </p>
+
+      </div>
+
+
     </div>
 
-   <div class="header-actions">
 
-  <button
-    class="admin-settings-button"
-    onclick="goToStore()"
-  >
-    🛒 Lihat Toko
-  </button>
+    <div class="header-actions">
 
-  <button
-    class="admin-settings-button"
-    onclick="window.location.href='admin-settings.html'"
-  >
-    ⚙️ Pengaturan Admin
-  </button>
 
-  <button
-    id="logout-button"
-    class="logout-button"
-  >
-    🚪 Keluar
-  </button>
+      <button
 
-</div>
+        class="header-button"
+
+        onclick="goToStore()"
+
+      >
+
+        🛒 Lihat Toko
+
+      </button>
+
+
+      <button
+
+        class="header-button"
+
+        onclick="window.location.href='admin-settings.html'"
+
+      >
+
+        ⚙️ Pengaturan Admin
+
+      </button>
+
+
+      <button
+
+        id="logout-button"
+
+        class="logout-button"
+
+      >
+
+        🚪 Keluar
+
+      </button>
+
+
+    </div>
+
 
   </header>
 
 
+  <!-- =========================
+       MAIN
+  ========================== -->
+
   <main class="dashboard">
 
-    <section class="welcome-section">
 
-      <h2>Selamat Datang, Admin 👋</h2>
+    <!-- =========================
+         HERO ADMIN
+    ========================== -->
 
-      <p>
-        Kelola pesanan dan pembayaran Armand Farm
-        dengan mudah.
-      </p>
+    <section class="admin-hero">
+
+
+      <div class="hero-content">
+
+
+        <h2>
+
+          Selamat Datang, Admin 👋
+
+        </h2>
+
+
+        <p>
+
+          Kelola pesanan dan pembayaran
+
+          Armand Farm dengan mudah.
+
+        </p>
+
+
+      </div>
+
+
+      <div class="hero-egg">
+
+        🥚
+
+      </div>
+
 
     </section>
 
+
+    <!-- =========================
+         STATISTICS
+    ========================== -->
 
     <section class="stats">
 
+
       <div class="stat-card">
 
+
         <div class="stat-icon">
+
           📦
+
         </div>
+
 
         <div>
 
-          <h3>Total Pesanan</h3>
+          <h3>
+
+            Total Pesanan
+
+          </h3>
+
 
           <p id="total-orders">
+
             0
+
           </p>
 
+
+          <small>
+
+            Semua pesanan masuk
+
+          </small>
+
         </div>
+
 
       </div>
 
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          💰
+
+        <div class="stat-icon money">
+
+          Rp
+
         </div>
+
 
         <div>
 
-          <h3>Total Penjualan</h3>
+          <h3>
+
+            Total Penjualan
+
+          </h3>
+
 
           <p id="total-sales">
+
             Rp0
+
           </p>
 
+
+          <small>
+
+            Dari pesanan terbayar
+
+          </small>
+
         </div>
+
 
       </div>
 
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          🔴
+
+        <div class="stat-icon red">
+
+          ●
+
         </div>
+
 
         <div>
 
-          <h3>Belum Dibayar</h3>
+          <h3>
+
+            Belum Dibayar
+
+          </h3>
+
 
           <p id="pending-orders">
+
             0
+
           </p>
 
+
+          <small>
+
+            Menunggu pembayaran
+
+          </small>
+
         </div>
+
 
       </div>
 
 
       <div class="stat-card">
 
-        <div class="stat-icon">
-          🟢
+
+        <div class="stat-icon green">
+
+          ●
+
         </div>
+
 
         <div>
 
-          <h3>Sudah Dibayar</h3>
+          <h3>
+
+            Sudah Dibayar
+
+          </h3>
+
 
           <p id="completed-orders">
+
             0
+
           </p>
+
+
+          <small>
+
+            Pembayaran diterima
+
+          </small>
 
         </div>
 
+
       </div>
+
 
     </section>
 
 
-<section class="orders-section">
+    <!-- =========================
+         CONTENT GRID
+    ========================== -->
 
-  <div class="section-header">
+    <section class="dashboard-grid">
 
-    <div>
 
-      <h2>📦 Daftar Pesanan</h2>
+      <!-- =========================
+           PESANAN
+      ========================== -->
 
-      <p>
-        Semua pesanan yang masuk ke Armand Farm
-      </p>
+      <section class="orders-section">
 
-    </div>
 
-    <button
-      class="refresh-button"
-      onclick="loadOrders()"
-    >
-      🔄 Refresh
-    </button>
+        <div class="section-header">
 
-  </div>
 
+          <div>
 
-  <!-- FILTER PESANAN -->
 
-  <div class="order-filters">
+            <h2>
 
-    <button
-      class="filter-button active"
-      onclick="filterOrders('all', this)"
-    >
-      📦 Semua Pesanan
-    </button>
+              📦 Daftar Pesanan
 
+            </h2>
 
-    <button
-      class="filter-button"
-      onclick="filterOrders('unpaid', this)"
-    >
-      🔴 Belum Dibayar
-    </button>
 
+            <p>
 
-    <button
-      class="filter-button"
-      onclick="filterOrders('paid', this)"
-    >
-      🟢 Sudah Dibayar
-    </button>
+              Semua pesanan yang masuk ke Armand Farm
 
-  </div>
+            </p>
 
 
-  <div id="orders-container">
+          </div>
 
-    <p>
-      Memuat pesanan...
-    </p>
 
-  </div>
+          <button
 
-</section>
-<section class="products-section">
+            class="refresh-button"
 
-  <div class="section-header">
+            onclick="loadOrders()"
 
-    <div>
+          >
 
-      <h2>🥚 Kelola Produk</h2>
+            🔄 Refresh
 
-      <p>
-        Tambah, edit, dan kelola stok produk Armand Farm
-      </p>
+          </button>
 
-    </div>
 
-    <button
-      class="add-product-button"
-      onclick="openAddProductModal()"
-    >
-      ➕ Tambah Produk
-    </button>
+        </div>
 
-  </div>
 
+        <div class="order-filters">
 
-  <div id="products-container">
 
-    <p>
-      Memuat produk...
-    </p>
+          <button
 
-  </div>
+            class="filter-button active"
 
-</section>
+            onclick="filterOrders('all', this)"
 
+          >
 
-<!-- MODAL EDIT / TAMBAH PRODUK -->
+            📦 Semua Pesanan
 
-<div
-  id="product-modal"
-  class="modal"
->
+          </button>
 
-  <div class="modal-content">
 
-    <div class="modal-header">
+          <button
 
-      <h2 id="product-modal-title">
-        Edit Produk
-      </h2>
+            class="filter-button"
 
-      <button
-        class="close-modal"
-        onclick="closeProductModal()"
-      >
-        ✕
-      </button>
+            onclick="filterOrders('unpaid', this)"
 
-    </div>
+          >
 
+            🔴 Belum Dibayar
 
-    <form id="product-form">
+          </button>
 
-      <input
-        type="hidden"
-        id="product-id"
-      >
 
+          <button
 
-      <label>
-        Nama Produk
-      </label>
+            class="filter-button"
 
-      <input
-        type="text"
-        id="product-name"
-        required
-      >
+            onclick="filterOrders('paid', this)"
 
+          >
 
-      <label>
-        Deskripsi
-      </label>
+            🟢 Sudah Dibayar
 
-      <textarea
-        id="product-desc"
-      ></textarea>
+          </button>
 
 
-      <label>
-        Harga
-      </label>
+        </div>
 
-      <input
-        type="number"
-        id="product-price"
-        required
-      >
 
+        <div id="orders-container">
 
-      <label>
-        Stok
-      </label>
+          <p>
 
-      <input
-        type="number"
-        id="product-stock"
-        required
-      >
+            Memuat pesanan...
 
+          </p>
 
-      <label>
-        Satuan
-      </label>
+        </div>
 
-      <input
-        type="text"
-        id="product-unit"
-        placeholder="Contoh: rak, kg, pcs"
-        required
-      >
 
+      </section>
 
-      <button
-        type="submit"
-        class="save-product-button"
-      >
-        💾 Simpan Produk
-      </button>
 
-    </form>
+      <!-- =========================
+           PRODUK
+      ========================== -->
 
-  </div>
+      <section class="products-section">
 
-</div>
+
+        <div class="section-header">
+
+
+          <div>
+
+
+            <h2>
+
+              🥚 Kelola Produk
+
+            </h2>
+
+
+            <p>
+
+              Tambah, edit, dan kelola stok produk Armand Farm
+
+            </p>
+
+
+          </div>
+
+
+          <button
+
+            class="add-product-button"
+
+            onclick="openAddProductModal()"
+
+          >
+
+            ＋ Tambah Produk
+
+          </button>
+
+
+        </div>
+
+
+        <div id="products-container">
+
+
+          <p>
+
+            Memuat produk...
+
+          </p>
+
+
+        </div>
+
+
+      </section>
+
+
+    </section>
+
+
   </main>
 
 
+  <!-- =========================
+       MODAL PRODUK
+  ========================== -->
+
+  <div
+
+    id="product-modal"
+
+    class="modal"
+
+  >
+
+
+    <div class="modal-content">
+
+
+      <div class="modal-header">
+
+
+        <h2 id="product-modal-title">
+
+          Edit Produk
+
+        </h2>
+
+
+        <button
+
+          class="close-modal"
+
+          onclick="closeProductModal()"
+
+        >
+
+          ✕
+
+        </button>
+
+
+      </div>
+
+
+      <form id="product-form">
+
+
+        <input
+
+          type="hidden"
+
+          id="product-id"
+
+        >
+
+
+        <label>
+
+          Nama Produk
+
+        </label>
+
+
+        <input
+
+          type="text"
+
+          id="product-name"
+
+          required
+
+        >
+
+
+        <label>
+
+          Deskripsi
+
+        </label>
+
+
+        <textarea
+
+          id="product-desc"
+
+        ></textarea>
+
+
+        <label>
+
+          Harga
+
+        </label>
+
+
+        <input
+
+          type="number"
+
+          id="product-price"
+
+          required
+
+        >
+
+
+        <label>
+
+          Stok
+
+        </label>
+
+
+        <input
+
+          type="number"
+
+          id="product-stock"
+
+          required
+
+        >
+
+
+        <label>
+
+          Satuan
+
+        </label>
+
+
+        <input
+
+          type="text"
+
+          id="product-unit"
+
+          placeholder="Contoh: rak, kg, pcs"
+
+          required
+
+        >
+
+
+        <button
+
+          type="submit"
+
+          class="save-product-button"
+
+        >
+
+          💾 Simpan Produk
+
+        </button>
+
+
+      </form>
+
+
+    </div>
+
+
+  </div>
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+  <footer>
+
+
+    <div class="footer-content">
+
+
+      <div>
+
+
+        <h2>
+
+          🥚 Armand Farm
+
+        </h2>
+
+
+        <p>
+
+          Telur segar berkualitas langsung dari peternakan.
+
+        </p>
+
+      </div>
+
+
+      <div>
+
+        <p>
+
+          📍 Bandung, Indonesia
+
+        </p>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      © 2026 Armand Farm.
+
+      Semua hak dilindungi.
+
+    </div>
+
+
+  </footer>
+
+
   <script src="script.js"></script>
+
 
 </body>
 
