@@ -2,7 +2,7 @@
 // CEK LOGIN ADMIN
 // ======================================
 
-let adminToken =
+const adminToken =
   localStorage.getItem("adminToken");
 
 
@@ -13,114 +13,6 @@ if (!adminToken) {
 
 }
 
-
-// ======================================
-// FETCH API DENGAN TOKEN ADMIN
-// ======================================
-
-async function adminFetch(
-
-  url,
-
-  options = {}
-
-) {
-
-  const token =
-    localStorage.getItem(
-      "adminToken"
-    );
-
-
-  // ======================================
-  // TOKEN TIDAK ADA
-  // ======================================
-
-  if (!token) {
-
-    localStorage.removeItem(
-      "adminData"
-    );
-
-
-    window.location.href =
-      "login.html";
-
-
-    throw new Error(
-      "Token admin tidak ditemukan"
-    );
-
-  }
-
-
-  const headers = {
-
-    ...(options.headers || {}),
-
-    Authorization:
-      `Bearer ${token}`
-
-  };
-
-
-  const response =
-    await fetch(
-
-      url,
-
-      {
-
-        ...options,
-
-        headers
-
-      }
-
-    );
-
-
-  // ======================================
-  // TOKEN TIDAK VALID / EXPIRED
-  // ======================================
-
-  if (
-
-    response.status === 401
-
-  ) {
-
-    localStorage.removeItem(
-      "adminToken"
-    );
-
-
-    localStorage.removeItem(
-      "adminData"
-    );
-
-
-    alert(
-
-      "Sesi login sudah berakhir. Silakan login kembali."
-
-    );
-
-
-    window.location.href =
-      "login.html";
-
-
-    throw new Error(
-      "Token tidak valid"
-    );
-
-  }
-
-
-  return response;
-
-}
 
 // ======================================
 // API
@@ -142,7 +34,11 @@ let products = [];
 
 let orders = [];
 
-let currentOrderFilter = "all";
+let currentOrderFilter =
+  "all";
+
+let currentSearchKeyword =
+  "";
 
 
 // ======================================
@@ -170,6 +66,18 @@ const productModal =
 const productForm =
   document.getElementById(
     "product-form"
+  );
+
+
+const logoutButton =
+  document.getElementById(
+    "logout-button"
+  );
+
+
+const orderSearchInput =
+  document.getElementById(
+    "order-search-input"
   );
 
 
@@ -212,6 +120,46 @@ function formatRupiah(
 
 
 // ======================================
+// FORMAT TANGGAL
+// ======================================
+
+function formatDate(
+
+  date
+
+) {
+
+  if (!date) {
+
+    return "-";
+
+  }
+
+
+  return new Date(
+
+    date
+
+  ).toLocaleString(
+
+    "id-ID",
+
+    {
+
+      dateStyle:
+        "medium",
+
+      timeStyle:
+        "short"
+
+    }
+
+  );
+
+}
+
+
+// ======================================
 // NAVIGASI KE TOKO
 // ======================================
 
@@ -224,14 +172,592 @@ function goToStore() {
 
 
 // ======================================
-// LOGOUT ADMIN
+// CUSTOM ALERT MODAL
 // ======================================
 
-const logoutButton =
-  document.getElementById(
-    "logout-button"
+function showAlertModal(
+
+  message,
+
+  title = "Informasi",
+
+  type = "success"
+
+) {
+
+  return new Promise(
+
+    resolve => {
+
+
+      const modal =
+        document.getElementById(
+          "alert-modal"
+        );
+
+
+      const titleElement =
+        document.getElementById(
+          "alert-title"
+        );
+
+
+      const messageElement =
+        document.getElementById(
+          "alert-message"
+        );
+
+
+      const iconElement =
+        document.getElementById(
+          "alert-icon"
+        );
+
+
+      const okButton =
+        document.getElementById(
+          "alert-ok-button"
+        );
+
+
+      if (
+
+        !modal ||
+
+        !titleElement ||
+
+        !messageElement ||
+
+        !iconElement ||
+
+        !okButton
+
+      ) {
+
+        console.error(
+
+          "Custom alert modal tidak ditemukan."
+
+        );
+
+
+        resolve();
+
+
+        return;
+
+      }
+
+
+      titleElement.textContent =
+        title;
+
+
+      messageElement.textContent =
+        message;
+
+
+      iconElement.className =
+        "alert-modal-icon";
+
+
+      if (
+
+        type === "success"
+
+      ) {
+
+        iconElement.textContent =
+          "✓";
+
+
+        iconElement.classList.add(
+          "success"
+        );
+
+      }
+
+
+      else if (
+
+        type === "error"
+
+      ) {
+
+        iconElement.textContent =
+          "✕";
+
+
+        iconElement.classList.add(
+          "error"
+        );
+
+      }
+
+
+      else if (
+
+        type === "warning"
+
+      ) {
+
+        iconElement.textContent =
+          "!";
+
+
+        iconElement.classList.add(
+          "warning"
+        );
+
+      }
+
+
+      else {
+
+        iconElement.textContent =
+          "i";
+
+      }
+
+
+      modal.style.display =
+        "flex";
+
+
+      function closeAlert() {
+
+        modal.style.display =
+          "none";
+
+
+        okButton.removeEventListener(
+
+          "click",
+
+          handleOK
+
+        );
+
+
+        modal.removeEventListener(
+
+          "click",
+
+          handleOutsideClick
+
+        );
+
+
+        resolve();
+
+      }
+
+
+      function handleOK() {
+
+        closeAlert();
+
+      }
+
+
+      function handleOutsideClick(
+
+        event
+
+      ) {
+
+        if (
+
+          event.target === modal
+
+        ) {
+
+          closeAlert();
+
+        }
+
+      }
+
+
+      okButton.addEventListener(
+
+        "click",
+
+        handleOK
+
+      );
+
+
+      modal.addEventListener(
+
+        "click",
+
+        handleOutsideClick
+
+      );
+
+    }
+
   );
 
+}
+
+
+// ======================================
+// CUSTOM CONFIRM MODAL
+// ======================================
+
+function showConfirmModal(
+
+  message,
+
+  title = "Konfirmasi",
+
+  buttonText = "Ya, Lanjutkan",
+
+  isDanger = false
+
+) {
+
+  return new Promise(
+
+    resolve => {
+
+
+      const modal =
+        document.getElementById(
+          "confirm-modal"
+        );
+
+
+      const titleElement =
+        document.getElementById(
+          "confirm-title"
+        );
+
+
+      const messageElement =
+        document.getElementById(
+          "confirm-message"
+        );
+
+
+      const cancelButton =
+        document.getElementById(
+          "confirm-cancel-button"
+        );
+
+
+      const okButton =
+        document.getElementById(
+          "confirm-ok-button"
+        );
+
+
+      if (
+
+        !modal ||
+
+        !titleElement ||
+
+        !messageElement ||
+
+        !cancelButton ||
+
+        !okButton
+
+      ) {
+
+        console.error(
+
+          "Custom confirm modal tidak ditemukan."
+
+        );
+
+
+        resolve(false);
+
+
+        return;
+
+      }
+
+
+      titleElement.textContent =
+        title;
+
+
+      messageElement.textContent =
+        message;
+
+
+      okButton.textContent =
+        buttonText;
+
+
+      okButton.classList.toggle(
+
+        "danger",
+
+        isDanger
+
+      );
+
+
+      modal.style.display =
+        "flex";
+
+
+      function closeModal(
+
+        result
+
+      ) {
+
+        modal.style.display =
+          "none";
+
+
+        okButton.removeEventListener(
+
+          "click",
+
+          handleConfirm
+
+        );
+
+
+        cancelButton.removeEventListener(
+
+          "click",
+
+          handleCancel
+
+        );
+
+
+        modal.removeEventListener(
+
+          "click",
+
+          handleOutsideClick
+
+        );
+
+
+        resolve(
+
+          result
+
+        );
+
+      }
+
+
+      function handleConfirm() {
+
+        closeModal(
+
+          true
+
+        );
+
+      }
+
+
+      function handleCancel() {
+
+        closeModal(
+
+          false
+
+        );
+
+      }
+
+
+      function handleOutsideClick(
+
+        event
+
+      ) {
+
+        if (
+
+          event.target === modal
+
+        ) {
+
+          closeModal(
+
+            false
+
+          );
+
+        }
+
+      }
+
+
+      okButton.addEventListener(
+
+        "click",
+
+        handleConfirm
+
+      );
+
+
+      cancelButton.addEventListener(
+
+        "click",
+
+        handleCancel
+
+      );
+
+
+      modal.addEventListener(
+
+        "click",
+
+        handleOutsideClick
+
+      );
+
+    }
+
+  );
+
+}
+
+
+// ======================================
+// FETCH API DENGAN TOKEN ADMIN
+// ======================================
+
+async function adminFetch(
+
+  url,
+
+  options = {}
+
+) {
+
+
+  if (!url) {
+
+    throw new Error(
+
+      "URL API tidak ditemukan."
+
+    );
+
+  }
+
+
+  const token =
+    localStorage.getItem(
+      "adminToken"
+    );
+
+
+  if (!token) {
+
+    localStorage.removeItem(
+      "adminData"
+    );
+
+
+    window.location.href =
+      "login.html";
+
+
+    throw new Error(
+
+      "Token admin tidak ditemukan."
+
+    );
+
+  }
+
+
+  const headers = {
+
+    ...(options.headers || {}),
+
+    Authorization:
+
+      `Bearer ${token}`
+
+  };
+
+
+  const response =
+    await fetch(
+
+      url,
+
+      {
+
+        ...options,
+
+        headers
+
+      }
+
+    );
+
+
+  if (
+
+    response.status === 401
+
+  ) {
+
+
+    localStorage.removeItem(
+      "adminToken"
+    );
+
+
+    localStorage.removeItem(
+      "adminData"
+    );
+
+
+    await showAlertModal(
+
+      "Sesi login sudah berakhir. Silakan login kembali.",
+
+      "Sesi Berakhir",
+
+      "warning"
+
+    );
+
+
+    window.location.href =
+      "login.html";
+
+
+    throw new Error(
+
+      "Token tidak valid."
+
+    );
+
+  }
+
+
+  return response;
+
+}
+
+
+// ======================================
+// LOGOUT ADMIN
+// ======================================
 
 if (logoutButton) {
 
@@ -239,13 +765,19 @@ if (logoutButton) {
 
     "click",
 
-    function () {
+    async function () {
 
 
       const confirmation =
-        confirm(
+        await showConfirmModal(
 
-          "Apakah kamu yakin ingin keluar dari dashboard admin?"
+          "Apakah kamu yakin ingin keluar dari dashboard admin?",
+
+          "Keluar dari Dashboard?",
+
+          "Ya, Keluar",
+
+          true
 
         );
 
@@ -257,8 +789,6 @@ if (logoutButton) {
       }
 
 
-      // HAPUS TOKEN
-
       localStorage.removeItem(
 
         "adminToken"
@@ -266,16 +796,12 @@ if (logoutButton) {
       );
 
 
-      // HAPUS DATA ADMIN
-
       localStorage.removeItem(
 
         "adminData"
 
       );
 
-
-      // KEMBALI KE LOGIN
 
       window.location.href =
         "login.html";
@@ -286,6 +812,7 @@ if (logoutButton) {
 
 }
 
+
 // ======================================
 // LOAD PRODUK
 // ======================================
@@ -293,6 +820,7 @@ if (logoutButton) {
 async function loadProducts() {
 
   try {
+
 
     const response =
       await adminFetch(
@@ -306,7 +834,7 @@ async function loadProducts() {
 
       throw new Error(
 
-        "Gagal mengambil produk"
+        "Gagal mengambil produk."
 
       );
 
@@ -320,7 +848,11 @@ async function loadProducts() {
     renderProducts();
 
 
-  } catch (error) {
+  }
+
+
+  catch (error) {
+
 
     console.error(
 
@@ -331,15 +863,19 @@ async function loadProducts() {
     );
 
 
-    productsContainer.innerHTML = `
+    if (productsContainer) {
 
-      <p>
+      productsContainer.innerHTML = `
 
-        Gagal memuat produk.
+        <p>
 
-      </p>
+          Gagal memuat produk.
 
-    `;
+        </p>
+
+      `;
+
+    }
 
   }
 
@@ -351,6 +887,14 @@ async function loadProducts() {
 // ======================================
 
 function renderProducts() {
+
+
+  if (!productsContainer) {
+
+    return;
+
+  }
+
 
   if (
 
@@ -367,6 +911,7 @@ function renderProducts() {
       </p>
 
     `;
+
 
     return;
 
@@ -394,96 +939,122 @@ function renderProducts() {
 
       productCard.innerHTML = `
 
-  <div class="product-card-header">
+        <div class="product-card-header">
 
-    <div class="product-card-icon">
-      🥚
-    </div>
+          <div class="product-card-icon">
 
+            🥚
 
-    <div class="product-card-info">
-
-      <h3>
-        ${product.name}
-      </h3>
+          </div>
 
 
-      <p>
-        ${product.desc || "Telur segar Armand Farm"}
-      </p>
+          <div class="product-card-info">
 
-    </div>
+            <h3>
 
-  </div>
+              ${product.name}
 
-
-  <div class="product-info-grid">
-
-    <div class="product-info-box">
-
-      <span>
-        💰 Harga
-      </span>
+            </h3>
 
 
-      <strong>
-        ${formatRupiah(product.price)}
-      </strong>
+            <p>
 
-    </div>
+              ${
+                product.desc ||
 
+                "Telur segar Armand Farm"
 
-    <div class="product-info-box">
+              }
 
-      <span>
-        📦 Stok
-      </span>
+            </p>
 
+          </div>
 
-      <strong>
-        ${product.stock}
-        ${product.unit}
-      </strong>
-
-    </div>
-
-  </div>
+        </div>
 
 
-  <div class="product-actions">
+        <div class="product-info-grid">
 
-    <button
+          <div class="product-info-box">
 
-      class="edit-product-button"
+            <span>
 
-      onclick="editProduct('${product.id}')"
+              💰 Harga
 
-    >
-
-      ✏️ Edit
-
-    </button>
+            </span>
 
 
-    <button
+            <strong>
 
-      class="delete-product-button"
+              ${formatRupiah(
 
-      onclick="deleteProduct('${product.id}')"
+                product.price
 
-    >
+              )}
 
-      🗑️ Hapus
+            </strong>
 
-    </button>
+          </div>
 
-  </div>
 
-`;
+          <div class="product-info-box">
+
+            <span>
+
+              📦 Stok
+
+            </span>
+
+
+            <strong>
+
+              ${product.stock}
+
+              ${product.unit || ""}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="product-actions">
+
+          <button
+
+            class="edit-product-button"
+
+            onclick="editProduct('${product.id}')"
+
+          >
+
+            ✏️ Edit
+
+          </button>
+
+
+          <button
+
+            class="delete-product-button"
+
+            onclick="deleteProduct('${product.id}')"
+
+          >
+
+            🗑️ Hapus
+
+          </button>
+
+        </div>
+
+      `;
 
 
       productsContainer.appendChild(
+
         productCard
+
       );
 
     }
@@ -501,19 +1072,23 @@ function openAddProductModal() {
 
 
   document.getElementById(
+
     "product-modal-title"
+
   ).textContent =
+
     "Tambah Produk";
 
 
-  document.getElementById(
-    "product-form"
-  ).reset();
+  productForm.reset();
 
 
   document.getElementById(
+
     "product-id"
+
   ).value =
+
     "";
 
 
@@ -550,7 +1125,10 @@ function editProduct(
     products.find(
 
       item =>
-        item.id === id
+
+        String(item.id) ===
+
+        String(id)
 
     );
 
@@ -563,44 +1141,65 @@ function editProduct(
 
 
   document.getElementById(
+
     "product-modal-title"
+
   ).textContent =
+
     "Edit Produk";
 
 
   document.getElementById(
+
     "product-id"
+
   ).value =
+
     product.id;
 
 
   document.getElementById(
+
     "product-name"
+
   ).value =
+
     product.name;
 
 
   document.getElementById(
+
     "product-desc"
+
   ).value =
+
     product.desc || "";
 
 
   document.getElementById(
+
     "product-price"
+
   ).value =
+
     product.price;
 
 
   document.getElementById(
+
     "product-stock"
+
   ).value =
+
     product.stock;
 
 
   document.getElementById(
+
     "product-unit"
+
   ).value =
+
     product.unit || "";
 
 
@@ -614,170 +1213,217 @@ function editProduct(
 // SIMPAN PRODUK
 // ======================================
 
-productForm.addEventListener(
+if (productForm) {
 
-  "submit",
+  productForm.addEventListener(
 
-  async function(event) {
+    "submit",
 
-
-    event.preventDefault();
-
-
-    const id =
-      document.getElementById(
-        "product-id"
-      ).value;
+    async function(event) {
 
 
-    const name =
-      document.getElementById(
-        "product-name"
-      ).value.trim();
+      event.preventDefault();
 
 
-    const desc =
-      document.getElementById(
-        "product-desc"
-      ).value.trim();
+      const id =
+
+        document.getElementById(
+
+          "product-id"
+
+        ).value;
 
 
-    const price =
-      document.getElementById(
-        "product-price"
-      ).value;
+      const name =
+
+        document.getElementById(
+
+          "product-name"
+
+        ).value.trim();
 
 
-    const stock =
-      document.getElementById(
-        "product-stock"
-      ).value;
+      const desc =
+
+        document.getElementById(
+
+          "product-desc"
+
+        ).value.trim();
 
 
-    const unit =
-      document.getElementById(
-        "product-unit"
-      ).value.trim();
+      const price =
+
+        document.getElementById(
+
+          "product-price"
+
+        ).value;
 
 
-    const productData = {
+      const stock =
 
-      name,
+        document.getElementById(
 
-      desc,
+          "product-stock"
 
-      price:
-        Number(
-          price
-        ),
-
-      stock:
-        Number(
-          stock
-        ),
-
-      unit
-
-    };
+        ).value;
 
 
-    try {
+      const unit =
+
+        document.getElementById(
+
+          "product-unit"
+
+        ).value.trim();
 
 
-      const response =
-        await adminFetch(
+      const productData = {
+
+
+        name,
+
+        desc,
+
+
+        price:
+
+          Number(price),
+
+
+        stock:
+
+          Number(stock),
+
+
+        unit
+
+      };
+
+
+      try {
+
+
+        const response =
+
+          await adminFetch(
+
+            id
+
+              ? `${API_URL}/${id}`
+
+              : API_URL,
+
+
+            {
+
+
+              method:
+
+                id
+
+                  ? "PUT"
+
+                  : "POST",
+
+
+              headers: {
+
+
+                "Content-Type":
+
+                  "application/json"
+
+              },
+
+
+              body:
+
+                JSON.stringify(
+
+                  productData
+
+                )
+
+            }
+
+          );
+
+
+        const data =
+
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+
+            data.error ||
+
+            "Gagal menyimpan produk."
+
+          );
+
+        }
+
+
+        await showAlertModal(
 
           id
 
-            ? `${API_URL}/${id}`
+            ? "Produk berhasil diperbarui."
 
-            : API_URL,
+            : "Produk berhasil ditambahkan.",
 
-          {
+          "Berhasil",
 
-            method:
-
-              id
-
-                ? "PUT"
-
-                : "POST",
-
-
-            headers: {
-
-              "Content-Type":
-                "application/json"
-
-            },
-
-
-            body:
-
-              JSON.stringify(
-                productData
-              )
-
-          }
+          "success"
 
         );
 
 
-      const data =
-        await response.json();
+        closeProductModal();
 
 
-      if (!response.ok) {
+        await loadProducts();
 
-        throw new Error(
 
-          data.error ||
+      }
 
-          "Gagal menyimpan produk"
+
+      catch (error) {
+
+
+        console.error(
+
+          "ERROR SAVE PRODUCT:",
+
+          error
+
+        );
+
+
+        await showAlertModal(
+
+          error.message ||
+
+          "Gagal menyimpan produk.",
+
+          "Gagal",
+
+          "error"
 
         );
 
       }
 
-
-      alert(
-
-        id
-
-          ? "Produk berhasil diperbarui"
-
-          : "Produk berhasil ditambahkan"
-
-      );
-
-
-      closeProductModal();
-
-
-      loadProducts();
-
-
-    } catch (error) {
-
-      console.error(
-        "ERROR SAVE PRODUCT:",
-        error
-      );
-
-
-      alert(
-
-        error.message ||
-
-        "Gagal menyimpan produk"
-
-      );
-
     }
 
-  }
+  );
 
-);
+}
 
 
 // ======================================
@@ -792,9 +1438,16 @@ async function deleteProduct(
 
 
   const confirmation =
-    confirm(
 
-      "Apakah kamu yakin ingin menghapus produk ini?"
+    await showConfirmModal(
+
+      "Apakah kamu yakin ingin menghapus produk ini?",
+
+      "Hapus Produk?",
+
+      "Ya, Hapus",
+
+      true
 
     );
 
@@ -810,13 +1463,16 @@ async function deleteProduct(
 
 
     const response =
+
       await adminFetch(
 
         `${API_URL}/${id}`,
 
         {
 
+
           method:
+
             "DELETE"
 
         }
@@ -825,6 +1481,7 @@ async function deleteProduct(
 
 
     const data =
+
       await response.json();
 
 
@@ -834,34 +1491,51 @@ async function deleteProduct(
 
         data.error ||
 
-        "Gagal menghapus produk"
+        "Gagal menghapus produk."
 
       );
 
     }
 
 
-    alert(
-      "Produk berhasil dihapus"
+    await showAlertModal(
+
+      "Produk berhasil dihapus.",
+
+      "Berhasil",
+
+      "success"
+
     );
 
 
-    loadProducts();
+    await loadProducts();
 
 
-  } catch (error) {
+  }
+
+
+  catch (error) {
+
 
     console.error(
+
       "ERROR DELETE PRODUCT:",
+
       error
+
     );
 
 
-    alert(
+    await showAlertModal(
 
       error.message ||
 
-      "Gagal menghapus produk"
+      "Gagal menghapus produk.",
+
+      "Gagal",
+
+      "error"
 
     );
 
@@ -876,20 +1550,24 @@ async function deleteProduct(
 
 async function loadOrders() {
 
+
   try {
 
+
     const response =
-  await adminFetch(
 
-    ORDER_API_URL
+      await adminFetch(
 
-  );
+        ORDER_API_URL
+
+      );
+
 
     if (!response.ok) {
 
       throw new Error(
 
-        "Gagal mengambil pesanan"
+        "Gagal mengambil pesanan."
 
       );
 
@@ -897,6 +1575,7 @@ async function loadOrders() {
 
 
     orders =
+
       await response.json();
 
 
@@ -906,7 +1585,11 @@ async function loadOrders() {
     updateStatistics();
 
 
-  } catch (error) {
+  }
+
+
+  catch (error) {
+
 
     console.error(
 
@@ -917,15 +1600,19 @@ async function loadOrders() {
     );
 
 
-    ordersContainer.innerHTML = `
+    if (ordersContainer) {
 
-      <p>
+      ordersContainer.innerHTML = `
 
-        Gagal memuat pesanan.
+        <p>
 
-      </p>
+          Gagal memuat pesanan.
 
-    `;
+        </p>
+
+      `;
+
+    }
 
   }
 
@@ -939,22 +1626,37 @@ async function loadOrders() {
 function renderOrders() {
 
 
+  if (!ordersContainer) {
+
+    return;
+
+  }
+
+
   let filteredOrders =
+
     orders;
 
+
+  // FILTER STATUS
 
   if (
 
     currentOrderFilter ===
+
     "paid"
 
   ) {
 
+
     filteredOrders =
-      orders.filter(
+
+      filteredOrders.filter(
 
         order =>
+
           order.payment_status ===
+
           "paid"
 
       );
@@ -965,16 +1667,87 @@ function renderOrders() {
   if (
 
     currentOrderFilter ===
+
     "unpaid"
 
   ) {
 
+
     filteredOrders =
-      orders.filter(
+
+      filteredOrders.filter(
 
         order =>
+
           order.payment_status !==
+
           "paid"
+
+      );
+
+  }
+
+
+  // SEARCH CUSTOMER
+
+  if (
+
+    currentSearchKeyword
+
+  ) {
+
+
+    filteredOrders =
+
+      filteredOrders.filter(
+
+        order => {
+
+
+          const customerName =
+
+            (
+
+              order.customer_name ||
+
+              ""
+
+            ).toLowerCase();
+
+
+          const customerPhone =
+
+            (
+
+              order.customer_phone ||
+
+              ""
+
+            ).toLowerCase();
+
+
+          const keyword =
+
+            currentSearchKeyword.toLowerCase();
+
+
+          return (
+
+            customerName.includes(
+
+              keyword
+
+            ) ||
+
+            customerPhone.includes(
+
+              keyword
+
+            )
+
+          );
+
+        }
 
       );
 
@@ -983,19 +1756,23 @@ function renderOrders() {
 
   if (
 
-    filteredOrders.length === 0
+    filteredOrders.length ===
+
+    0
 
   ) {
+
 
     ordersContainer.innerHTML = `
 
       <p>
 
-        Tidak ada pesanan pada kategori ini.
+        Tidak ada pesanan yang ditemukan.
 
       </p>
 
     `;
+
 
     return;
 
@@ -1012,30 +1789,46 @@ function renderOrders() {
 
 
       const orderCard =
+
         document.createElement(
+
           "div"
+
         );
 
 
       orderCard.className =
+
         "order-card";
 
 
       const isPaid =
-        order.payment_status === "paid";
+
+        order.payment_status ===
+
+        "paid";
+
 
       const paymentStatus =
-            isPaid
+
+        isPaid
+
           ? "SUDAH DIBAYAR"
+
           : "BELUM DIBAYAR";
 
+
       const paymentClass =
-            isPaid
+
+        isPaid
+
           ? "paid"
+
           : "unpaid";
 
 
       let itemsHTML =
+
         "";
 
 
@@ -1054,7 +1847,11 @@ function renderOrders() {
 
             item => `
 
-              <div class="order-item-detail">
+              <div
+
+                class="order-item-detail"
+
+              >
 
                 <span>
 
@@ -1081,11 +1878,7 @@ function renderOrders() {
 
             `
 
-          ).join(
-
-            ""
-
-          );
+          ).join("");
 
       }
 
@@ -1116,34 +1909,61 @@ function renderOrders() {
           </div>
 
 
-          <div class="payment-status-box ${paymentClass}">
+          <div
 
-  <div class="payment-status-icon">
+            class="payment-status-box ${paymentClass}"
 
-    ${isPaid ? "✓" : "!"}
+          >
 
-  </div>
+            <div
 
-  <div class="payment-status-text">
+              class="payment-status-icon"
 
-    <strong>
-      ${paymentStatus}
-    </strong>
+            >
 
-    <small>
+              ${
 
-      ${
-        isPaid
-          ? "Pembayaran telah diterima"
-          : "Menunggu pembayaran dari customer"
-      }
+                isPaid
 
-    </small>
+                  ? "✓"
 
-  </div>
+                  : "!"
 
-</div>
+              }
 
+            </div>
+
+
+            <div
+
+              class="payment-status-text"
+
+            >
+
+              <strong>
+
+                ${paymentStatus}
+
+              </strong>
+
+
+              <small>
+
+                ${
+
+                  isPaid
+
+                    ? "Pembayaran telah diterima"
+
+                    : "Menunggu pembayaran dari customer"
+
+                }
+
+              </small>
+
+            </div>
+
+          </div>
 
         </div>
 
@@ -1203,7 +2023,11 @@ function renderOrders() {
 
             ? `
 
-              <div class="order-note">
+              <div
+
+                class="order-note"
+
+              >
 
                 📝
 
@@ -1225,7 +2049,11 @@ function renderOrders() {
         }
 
 
-        <div class="order-card-footer">
+        <div
+
+          class="order-card-footer"
+
+        >
 
           <div>
 
@@ -1251,30 +2079,38 @@ function renderOrders() {
 
           <button
 
+            class="payment-button ${
 
-  class="payment-button ${isPaid ? "paid-action" : "unpaid-action"}"
+              isPaid
 
-  onclick="togglePaymentStatus(
+                ? "paid-action"
 
-    '${order.id}',
+                : "unpaid-action"
 
-    '${order.payment_status}'
+            }"
 
-  )"
 
->
+            onclick="togglePaymentStatus(
 
-  ${
+              '${order.id}',
 
-    isPaid
+              '${order.payment_status}'
 
-      ? "↩️ Ubah ke Belum Dibayar"
+            )"
 
-      : "✓ Tandai Sudah Dibayar"
+          >
 
-  }
+            ${
 
-</button>
+              isPaid
+
+                ? "↩️ Ubah ke Belum Dibayar"
+
+                : "✓ Tandai Sudah Dibayar"
+
+            }
+
+          </button>
 
         </div>
 
@@ -1282,7 +2118,9 @@ function renderOrders() {
 
 
       ordersContainer.appendChild(
+
         orderCard
+
       );
 
     }
@@ -1306,19 +2144,27 @@ function filterOrders(
 
 
   currentOrderFilter =
+
     filter;
 
 
   document
+
     .querySelectorAll(
+
       ".filter-button"
+
     )
+
     .forEach(
 
       item => {
 
+
         item.classList.remove(
+
           "active"
+
         );
 
       }
@@ -1329,13 +2175,43 @@ function filterOrders(
   if (button) {
 
     button.classList.add(
+
       "active"
+
     );
 
   }
 
 
   renderOrders();
+
+}
+
+
+// ======================================
+// SEARCH PESANAN
+// ======================================
+
+if (orderSearchInput) {
+
+
+  orderSearchInput.addEventListener(
+
+    "input",
+
+    function() {
+
+
+      currentSearchKeyword =
+
+        this.value.trim();
+
+
+      renderOrders();
+
+    }
+
+  );
 
 }
 
@@ -1353,33 +2229,82 @@ async function togglePaymentStatus(
 ) {
 
 
-  const newStatus =
+  const isCurrentlyPaid =
 
     currentStatus ===
-    "paid"
+
+    "paid";
+
+
+  const newStatus =
+
+    isCurrentlyPaid
 
       ? "unpaid"
 
       : "paid";
 
 
+  const confirmation =
+
+    await showConfirmModal(
+
+      isCurrentlyPaid
+
+        ? "Ubah status pesanan ini menjadi belum dibayar?"
+
+        : "Tandai pesanan ini sebagai sudah dibayar?",
+
+      isCurrentlyPaid
+
+        ? "Ubah Status Pembayaran?"
+
+        : "Konfirmasi Pembayaran",
+
+      isCurrentlyPaid
+
+        ? "Ya, Ubah"
+
+        : "Ya, Tandai Dibayar",
+
+      isCurrentlyPaid
+
+        ? true
+
+        : false
+
+    );
+
+
+  if (!confirmation) {
+
+    return;
+
+  }
+
+
   try {
 
 
     const response =
+
       await adminFetch(
 
         `${ORDER_API_URL}/${orderId}/payment`,
 
         {
 
+
           method:
+
             "PATCH",
 
 
           headers: {
 
+
             "Content-Type":
+
               "application/json"
 
           },
@@ -1387,21 +2312,25 @@ async function togglePaymentStatus(
 
           body:
 
-            JSON.stringify({
+            JSON.stringify(
 
-              payment_status:
+              {
 
-                newStatus
+                payment_status:
 
-            })
+                  newStatus
 
-          }
+              }
 
-        );
+            )
 
+        }
+
+      );
 
 
     const data =
+
       await response.json();
 
 
@@ -1411,7 +2340,7 @@ async function togglePaymentStatus(
 
         data.error ||
 
-        "Gagal mengubah status pembayaran"
+        "Gagal mengubah status pembayaran."
 
       );
 
@@ -1421,7 +2350,11 @@ async function togglePaymentStatus(
     await loadOrders();
 
 
-  } catch (error) {
+  }
+
+
+  catch (error) {
+
 
     console.error(
 
@@ -1432,11 +2365,15 @@ async function togglePaymentStatus(
     );
 
 
-    alert(
+    await showAlertModal(
 
       error.message ||
 
-      "Gagal mengubah status pembayaran"
+      "Gagal mengubah status pembayaran.",
+
+      "Gagal",
+
+      "error"
 
     );
 
@@ -1453,50 +2390,69 @@ function updateStatistics() {
 
 
   const totalOrders =
+
     document.getElementById(
+
       "total-orders"
+
     );
 
 
   const totalSales =
+
     document.getElementById(
+
       "total-sales"
+
     );
 
 
   const pendingOrders =
+
     document.getElementById(
+
       "pending-orders"
+
     );
 
 
   const completedOrders =
+
     document.getElementById(
+
       "completed-orders"
+
     );
 
 
   const paidOrders =
+
     orders.filter(
 
       order =>
+
         order.payment_status ===
+
         "paid"
 
     );
 
 
   const unpaidOrders =
+
     orders.filter(
 
       order =>
+
         order.payment_status !==
+
         "paid"
 
     );
 
 
   const totalSalesValue =
+
     paidOrders.reduce(
 
       (
@@ -1525,6 +2481,7 @@ function updateStatistics() {
   if (totalOrders) {
 
     totalOrders.textContent =
+
       orders.length;
 
   }
@@ -1533,6 +2490,7 @@ function updateStatistics() {
   if (totalSales) {
 
     totalSales.textContent =
+
       formatRupiah(
 
         totalSalesValue
@@ -1545,6 +2503,7 @@ function updateStatistics() {
   if (pendingOrders) {
 
     pendingOrders.textContent =
+
       unpaidOrders.length;
 
   }
@@ -1553,50 +2512,10 @@ function updateStatistics() {
   if (completedOrders) {
 
     completedOrders.textContent =
+
       paidOrders.length;
 
   }
-
-}
-
-
-// ======================================
-// FORMAT TANGGAL
-// ======================================
-
-function formatDate(
-
-  date
-
-) {
-
-
-  if (!date) {
-
-    return "-";
-
-  }
-
-
-  return new Date(
-
-    date
-
-  ).toLocaleString(
-
-    "id-ID",
-
-    {
-
-      dateStyle:
-        "medium",
-
-      timeStyle:
-        "short"
-
-    }
-
-  );
 
 }
 
@@ -1616,32 +2535,74 @@ loadOrders();
 
 setInterval(
 
-  () => {
+  async function() {
 
-
-    // Cek apakah token masih ada
 
     const token =
+
       localStorage.getItem(
+
         "adminToken"
+
       );
 
 
     if (!token) {
 
+
       window.location.href =
+
         "login.html";
+
 
       return;
 
     }
 
 
-   adminFetch()
+    // Jangan panggil adminFetch()
+    // tanpa URL API.
+
+
+    await loadProducts();
+
+    await loadOrders();
 
 
   },
 
-  5000
+  30000
 
 );
+
+
+// ======================================
+// GLOBAL FUNCTION
+// ======================================
+
+window.goToStore =
+  goToStore;
+
+
+window.openAddProductModal =
+  openAddProductModal;
+
+
+window.closeProductModal =
+  closeProductModal;
+
+
+window.editProduct =
+  editProduct;
+
+
+window.deleteProduct =
+  deleteProduct;
+
+
+window.filterOrders =
+  filterOrders;
+
+
+window.togglePaymentStatus =
+  togglePaymentStatus;

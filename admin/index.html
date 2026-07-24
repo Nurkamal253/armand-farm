@@ -348,7 +348,6 @@
 
           <div>
 
-
             <h2>
 
               📦 Daftar Pesanan
@@ -362,25 +361,39 @@
 
             </p>
 
+          </div>
+
+
+          <!-- SEARCH PESANAN -->
+
+          <div class="order-search">
+
+
+            <span class="search-icon">
+
+              🔍
+
+            </span>
+
+
+            <input
+
+              type="text"
+
+              id="order-search-input"
+
+              placeholder="Cari nama customer..."
+
+            >
+
 
           </div>
 
 
-          <button
-
-            class="refresh-button"
-
-            onclick="loadOrders()"
-
-          >
-
-            🔄 Refresh
-
-          </button>
-
-
         </div>
 
+
+        <!-- FILTER PESANAN -->
 
         <div class="order-filters">
 
@@ -429,11 +442,13 @@
 
         <div id="orders-container">
 
+
           <p>
 
             Memuat pesanan...
 
           </p>
+
 
         </div>
 
@@ -665,6 +680,149 @@
 
 
       </form>
+
+
+    </div>
+
+
+  </div>
+
+
+  <!-- =========================
+       CUSTOM CONFIRM MODAL
+  ========================== -->
+
+  <div
+
+    id="confirm-modal"
+
+    class="custom-modal"
+
+  >
+
+
+    <div class="confirm-modal-content">
+
+
+      <div class="confirm-modal-icon">
+
+        ⚠️
+
+      </div>
+
+
+      <h2 id="confirm-title">
+
+        Konfirmasi
+
+      </h2>
+
+
+      <p id="confirm-message">
+
+        Apakah kamu yakin?
+
+      </p>
+
+
+      <div class="confirm-modal-actions">
+
+
+        <button
+
+          id="confirm-cancel-button"
+
+          class="confirm-cancel-button"
+
+        >
+
+          Batal
+
+        </button>
+
+
+        <button
+
+          id="confirm-ok-button"
+
+          class="confirm-ok-button"
+
+        >
+
+          Ya, Lanjutkan
+
+        </button>
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+  <!-- =========================
+       CUSTOM NOTIFICATION MODAL
+  ========================== -->
+
+  <div
+
+    id="notification-modal"
+
+    class="custom-modal"
+
+  >
+
+
+    <div class="confirm-modal-content">
+
+
+      <div
+
+        id="notification-icon"
+
+        class="confirm-modal-icon"
+
+      >
+
+        ✓
+
+      </div>
+
+
+      <h2 id="notification-title">
+
+        Berhasil
+
+      </h2>
+
+
+      <p id="notification-message">
+
+        Operasi berhasil dilakukan.
+
+      </p>
+
+
+      <div class="confirm-modal-actions">
+
+
+        <button
+
+          id="notification-ok-button"
+
+          class="confirm-ok-button"
+
+        >
+
+          OK
+
+        </button>
+
+
+      </div>
 
 
     </div>
