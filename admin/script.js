@@ -1826,6 +1826,39 @@ function renderOrders() {
 
           : "unpaid";
 
+// ======================================
+// STATUS PENGIRIMAN
+// ======================================
+
+let shippingStatus = "";
+let shippingClass = "";
+
+switch (order.order_status) {
+
+  case "packaging":
+
+    shippingStatus = "📦 Dikemas";
+    shippingClass = "packaging";
+    break;
+
+  case "shipping":
+
+    shippingStatus = "🚚 Dalam Pengiriman";
+    shippingClass = "shipping";
+    break;
+
+  case "delivered":
+
+    shippingStatus = "✅ Sudah Dikirim";
+    shippingClass = "delivered";
+    break;
+
+  default:
+
+    shippingStatus = "📦 Dikemas";
+    shippingClass = "packaging";
+
+}          
 
       let itemsHTML =
 
@@ -2051,68 +2084,80 @@ function renderOrders() {
 
         <div
 
-          class="order-card-footer"
+         <div class="order-card-footer">
 
-        >
+    <div>
 
-          <div>
+        <span>Total Pesanan</span>
 
-            <span>
+        <strong>
+            ${formatRupiah(order.total_amount)}
+        </strong>
 
-              Total Pesanan
+        ${
+            isPaid
+            ?
+            `
+            <div class="shipping-status ${shippingClass}">
+                ${shippingStatus}
+            </div>
+            `
+            :
+            ""
+        }
 
-            </span>
+    </div>
 
+    <div class="order-actions">
 
-            <strong>
-
-              ${formatRupiah(
-
-                order.total_amount
-
-              )}
-
-            </strong>
-
-          </div>
-
-
-          <button
-
+        <button
             class="payment-button ${
-
-              isPaid
-
-                ? "paid-action"
-
-                : "unpaid-action"
-
+                isPaid ? "paid-action" : "unpaid-action"
             }"
-
-
             onclick="togglePaymentStatus(
-
-              '${order.id}',
-
-              '${order.payment_status}'
-
+                '${order.id}',
+                '${order.payment_status}'
             )"
-
-          >
-
+        >
             ${
-
-              isPaid
-
+                isPaid
                 ? "↩️ Ubah ke Belum Dibayar"
-
                 : "✓ Tandai Sudah Dibayar"
-
             }
+        </button>
 
-          </button>
+        ${
+            isPaid
+            ?
+            `
+            <select
+                onchange="updateOrderStatus('${order.id}', this.value)"
+            >
 
-        </div>
+                <option value="packaging"
+                ${order.order_status==="packaging"?"selected":""}>
+                Dikemas
+                </option>
+
+                <option value="shipping"
+                ${order.order_status==="shipping"?"selected":""}>
+                Dalam Pengiriman
+                </option>
+
+                <option value="delivered"
+                ${order.order_status==="delivered"?"selected":""}>
+                Sudah Dikirim
+                </option>
+
+            </select>
+            `
+            :
+            ""
+        }
+
+    </div>
+
+</div>
 
       `;
 
@@ -2381,6 +2426,61 @@ async function togglePaymentStatus(
 
 }
 
+async function updateOrderStatus(orderId,status){
+
+    try{
+
+        const response=await adminFetch(
+
+            `${ORDER_API_URL}/${orderId}/status`,
+
+            {
+
+                method:"PATCH",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+
+                    order_status:status
+
+                })
+
+            }
+
+        );
+
+        const data=await response.json();
+
+        if(!response.ok){
+
+            throw new Error(data.error);
+
+        }
+
+        await loadOrders();
+
+    }
+
+    catch(error){
+
+        console.error(error);
+
+        await showAlertModal(
+
+            error.message,
+
+            "Gagal",
+
+            "error"
+
+        );
+
+    }
+
+}
 
 // ======================================
 // UPDATE STATISTIK
@@ -2606,3 +2706,6 @@ window.filterOrders =
 
 window.togglePaymentStatus =
   togglePaymentStatus;
+
+window.updateOrderStatus =
+    updateOrderStatus;

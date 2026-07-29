@@ -1071,6 +1071,10 @@ app.post(
 
                   total_amount,
 
+                  payment_status:"unpaid",
+
+                  order_status:"packaging",
+
                   created_at:
                     new Date()
 
@@ -1297,6 +1301,7 @@ app.get(
 // UPDATE STATUS PEMBAYARAN
 // ======================================
 
+
 app.patch(
 
   "/api/orders/:id/payment",
@@ -1405,6 +1410,163 @@ app.patch(
 
 );
 
+// ======================================
+// UPDATE STATUS PENGIRIMAN
+// ======================================
+
+app.patch(
+
+  "/api/orders/:id/status",
+
+  authenticateAdmin,
+
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const { order_status } =
+        req.body;
+
+
+      // ======================================
+      // CEK PESANAN
+      // ======================================
+
+      const currentOrder =
+        await prisma.order.findUnique({
+
+          where: {
+            id
+          }
+
+        });
+
+
+      if (!currentOrder) {
+
+        return res.status(404).json({
+
+          error:
+            "Pesanan tidak ditemukan."
+
+        });
+
+      }
+
+
+      // ======================================
+      // CEK STATUS PEMBAYARAN
+      // ======================================
+
+      if (
+
+        currentOrder.payment_status !==
+        "paid"
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Pesanan belum dibayar."
+
+        });
+
+      }
+
+
+      // ======================================
+      // VALIDASI STATUS
+      // ======================================
+
+      const allowedStatus = [
+
+        "packaging",
+
+        "shipping",
+
+        "delivered"
+
+      ];
+
+
+      if (
+
+        !allowedStatus.includes(
+          order_status
+        )
+
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            "Status tidak valid."
+
+        });
+
+      }
+
+
+      // ======================================
+      // UPDATE STATUS
+      // ======================================
+
+      const order =
+        await prisma.order.update({
+
+          where: {
+
+            id
+
+          },
+
+          data: {
+
+            order_status
+
+          }
+
+        });
+
+
+      res.json({
+
+        message:
+          "Status pengiriman berhasil diperbarui.",
+
+        order
+
+      });
+
+    }
+
+    catch (error) {
+
+      console.error(
+
+        "ERROR UPDATE ORDER STATUS:",
+
+        error
+
+      );
+
+
+      res.status(500).json({
+
+        error:
+          "Gagal memperbarui status pengiriman."
+
+      });
+
+    }
+
+  }
+
+);
 
 // ==================================================
 // ADMIN AUTHENTICATION

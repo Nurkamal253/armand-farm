@@ -1422,3 +1422,51 @@ footer {
     flex-direction: column-reverse;
   }
 }
+
+.shipping-status{
+
+    margin-top:10px;
+    padding:6px 12px;
+    border-radius:8px;
+    display:inline-block;
+    font-weight:bold;
+
+}
+
+.shipping-status.packaging{
+
+    background:#fff4d6;
+    color:#a86b00;
+
+}
+
+.shipping-status.shipping{
+
+    background:#dff2ff;
+    color:#0069b4;
+
+}
+
+.shipping-status.delivered{
+
+    background:#ddffe4;
+    color:#0d7b2f;
+
+}
+
+.order-actions{
+
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-end;
+
+}
+
+.order-actions select{
+
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+
+}
